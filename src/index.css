@@ -14,6 +14,26 @@ body,
   height: 100%;
 }
 
+@layer components {
+  .btn-primary {
+    @apply min-h-16 rounded-2xl bg-accent px-6 py-4 text-xl font-semibold text-white disabled:opacity-40;
+  }
+  .btn-secondary {
+    @apply min-h-14 rounded-2xl border-2 border-line bg-white px-5 py-3 text-lg font-medium text-ink;
+  }
+}
+
+@page {
+  size: letter;
+  margin: 16mm;
+}
+
+@media print {
+  body {
+    background: white;
+  }
+}
+
 body {
   margin: 0;
   background: var(--color-paper);
