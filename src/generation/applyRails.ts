@@ -55,19 +55,59 @@ function namesCondition(sentence: string): boolean {
   return BLOCKED_TERMS.some((term) => new RegExp(`(^|[^a-z])${term}`).test(plain));
 }
 
-function stripScores(text: string): string {
-  return SCORE_PATTERNS.reduce((out, pattern) => out.replace(pattern, ""), text);
+// a global regexp keeps a lastIndex; reset it before every independent .test() or it misses matches
+function hasScore(sentence: string): boolean {
+  return SCORE_PATTERNS.some((pattern) => {
+    pattern.lastIndex = 0;
+    return pattern.test(sentence);
+  });
 }
 
-function stripConditions(text: string): string {
+// splits on sentence-ending punctuation, but not on a "." sitting between two digits
+// (a decimal score like "0.67" must stay one sentence, or stripScores can't catch it whole)
+function splitSentences(line: string): string[] {
+  const sentences: string[] = [];
+  let start = 0;
+  let i = 0;
+  while (i < line.length) {
+    const ch = line[i];
+    if (ch === "." || ch === "!" || ch === "?" || ch === "…") {
+      const isDecimalPoint = ch === "." && /\d/.test(line[i - 1] ?? "") && /\d/.test(line[i + 1] ?? "");
+      if (!isDecimalPoint) {
+        let end = i + 1;
+        while (end < line.length && /[.!?…]/.test(line[end])) end++;
+        while (end < line.length && /\s/.test(line[end])) end++;
+        sentences.push(line.slice(start, end));
+        start = end;
+        i = end;
+        continue;
+      }
+    }
+    i++;
+  }
+  if (start < line.length) sentences.push(line.slice(start));
+  return sentences;
+}
+
+// drops whole sentences that match `unwanted`, instead of cutting out just the matched text,
+// which used to leave grammatically broken sentences behind (e.g. a dangling "Tiene una y...")
+function removeSentences(text: string, unwanted: (sentence: string) => boolean): string {
   return text
     .split("\n")
     .flatMap((line) => {
       if (line.trim() === "") return [line];
-      const kept = (line.match(/[^.!?…]+[.!?…]*\s*/g) ?? []).filter((s) => !namesCondition(s)).join("");
+      const kept = splitSentences(line).filter((s) => !unwanted(s)).join("");
       return kept.trim() ? [kept] : [];
     })
     .join("\n");
+}
+
+function stripScores(text: string): string {
+  return removeSentences(text, hasScore);
+}
+
+function stripConditions(text: string): string {
+  return removeSentences(text, namesCondition);
 }
 
 function tidy(text: string): string {

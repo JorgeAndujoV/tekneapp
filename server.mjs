@@ -1,7 +1,8 @@
 import http from "node:http";
 import { pathToFileURL } from "node:url";
 
-const TIMEOUT_MS = 30_000;
+// a json-mode retry means up to two upstream calls, so each gets half the overall budget
+const ATTEMPT_TIMEOUT_MS = 15_000;
 const MAX_BODY_BYTES = 64 * 1024;
 
 function send(res, status, body) {
@@ -57,13 +58,25 @@ export async function handleGenerate(req, res) {
   }
   if (!isValidMessages(messages)) return send(res, 400, { error: "La solicitud no es válida." });
 
-  try {
-    const upstream = await fetch(`${LLM_BASE_URL.replace(/\/+$/, "")}/chat/completions`, {
+  const endpoint = `${LLM_BASE_URL.replace(/\/+$/, "")}/chat/completions`;
+
+  function callUpstream(withJsonMode) {
+    const body = { model: LLM_MODEL, messages, temperature: 0.3 };
+    if (withJsonMode) body.response_format = { type: "json_object" };
+    return fetch(endpoint, {
       method: "POST",
       headers: { "content-type": "application/json", authorization: `Bearer ${LLM_API_KEY}` },
-      body: JSON.stringify({ model: LLM_MODEL, messages, temperature: 0.3 }),
-      signal: AbortSignal.timeout(TIMEOUT_MS),
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(ATTEMPT_TIMEOUT_MS),
     });
+  }
+
+  try {
+    let upstream = await callUpstream(true);
+    // some providers/models reject response_format with a 400; retry once in plain-text mode
+    if (!upstream.ok && upstream.status === 400) {
+      upstream = await callUpstream(false);
+    }
     if (!upstream.ok) {
       console.error(`[generate] model service answered ${upstream.status}: ${(await upstream.text()).slice(0, 500)}`);
       return send(res, 502, {

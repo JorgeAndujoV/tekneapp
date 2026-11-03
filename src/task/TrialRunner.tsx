@@ -79,6 +79,9 @@ export default function TrialRunner({ id, audioFile, expected, onDone }: Props) 
     if (!isListening.current) armSilenceTimer();
   }
 
+  // deliberately does not reset `endedAt`: a tap made while this replay is still playing is
+  // still measured from the end of the FIRST playback, so it reads as a normal (positive)
+  // response time and never gets flagged as a premature start — an unreviewed behaviour, not a chosen policy.
   function replay() {
     if (replayed.current || isListening.current || finished.current) return;
     replayed.current = true;
