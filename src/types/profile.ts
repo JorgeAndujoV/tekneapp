@@ -25,9 +25,9 @@
 export type Dimension =
   | "baseline" // 1 action, 1 element            — trials 1–2
   | "twoActions" // 2 actions, mention = execution — trials 3–5
-  | "reversed" // "before/after", order flipped  — trials 8–9
-  | "threeActions" // 3 actions                      — trials 10–11
-  | "negation"; // negation or conditional        — trial 12
+  | "reversed" // "before/after", order flipped  — trials 6–7
+  | "threeActions" // 3 actions                      — trials 8–10
+  | "negation"; // negation or conditional        — trials 11–12
 
 export interface TrialSpec {
   id: string;
