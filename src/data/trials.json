@@ -1,0 +1,14 @@
+[
+  {"id": "t01", "dimension": "baseline", "actionCount": 1, "text": "Toca el círculo rojo.", "audioFile": "audio/trials/t01.mp3", "audioMs": 0, "expected": ["r-c"]},
+  {"id": "t02", "dimension": "baseline", "actionCount": 1, "text": "Toca el cuadrado amarillo.", "audioFile": "audio/trials/t02.mp3", "audioMs": 0, "expected": ["y-s"]},
+  {"id": "t03", "dimension": "twoActions", "actionCount": 2, "text": "Toca el círculo azul y luego el cuadrado rojo.", "audioFile": "audio/trials/t03.mp3", "audioMs": 0, "expected": ["b-c", "r-s"]},
+  {"id": "t04", "dimension": "twoActions", "actionCount": 2, "text": "Toca el cuadrado amarillo y luego el círculo rojo.", "audioFile": "audio/trials/t04.mp3", "audioMs": 0, "expected": ["y-s", "r-c"]},
+  {"id": "t05", "dimension": "twoActions", "actionCount": 2, "text": "Toca el círculo amarillo y luego el cuadrado azul.", "audioFile": "audio/trials/t05.mp3", "audioMs": 0, "expected": ["y-c", "b-s"]},
+  {"id": "t06", "dimension": "reversed", "actionCount": 2, "text": "Antes de tocar el círculo rojo, toca el cuadrado azul.", "audioFile": "audio/trials/t06.mp3", "audioMs": 0, "expected": ["b-s", "r-c"]},
+  {"id": "t07", "dimension": "reversed", "actionCount": 2, "text": "Toca el círculo amarillo después de tocar el cuadrado rojo.", "audioFile": "audio/trials/t07.mp3", "audioMs": 0, "expected": ["r-s", "y-c"]},
+  {"id": "t08", "dimension": "threeActions", "actionCount": 3, "text": "Toca el círculo rojo, el cuadrado azul y el círculo amarillo.", "audioFile": "audio/trials/t08.mp3", "audioMs": 0, "expected": ["r-c", "b-s", "y-c"]},
+  {"id": "t09", "dimension": "threeActions", "actionCount": 3, "text": "Toca el cuadrado amarillo, el círculo azul y el cuadrado rojo.", "audioFile": "audio/trials/t09.mp3", "audioMs": 0, "expected": ["y-s", "b-c", "r-s"]},
+  {"id": "t10", "dimension": "threeActions", "actionCount": 3, "text": "Toca el círculo azul, el cuadrado rojo y el cuadrado amarillo.", "audioFile": "audio/trials/t10.mp3", "audioMs": 0, "expected": ["b-c", "r-s", "y-s"]},
+  {"id": "t11", "dimension": "negation", "actionCount": 1, "text": "Toca el cuadrado que no es azul ni amarillo.", "audioFile": "audio/trials/t11.mp3", "audioMs": 0, "expected": ["r-s"]},
+  {"id": "t12", "dimension": "negation", "actionCount": 1, "text": "Si hay un círculo verde, toca el cuadrado rojo. Si no, toca el círculo azul.", "audioFile": "audio/trials/t12.mp3", "audioMs": 0, "expected": ["b-c"]}
+]
