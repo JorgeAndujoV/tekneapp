@@ -40,15 +40,43 @@ function parseVersion(value: unknown): ManualVersion | null {
   return observed && toTry && watchFor ? { observed, toTry, watchFor } : null;
 }
 
+// returns the substring from `start` to its matching "}", or null if braces never balance;
+// used to pull out one candidate object without assuming the LAST "}" in the text is the right one
+function matchBraces(text: string, start: number): string | null {
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let i = start; i < text.length; i++) {
+    const ch = text[i];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (ch === "\\") escaped = true;
+      else if (ch === '"') inString = false;
+      continue;
+    }
+    if (ch === '"') inString = true;
+    else if (ch === "{") depth++;
+    else if (ch === "}" && --depth === 0) return text.slice(start, i + 1);
+  }
+  return null;
+}
+
+// tries every "{" in the text as a possible start, so a stray unmatched brace in commentary
+// before or after the real object (or a ```json fence around it) doesn't break the extraction
 export function parseSections(text: string): ManualSections {
-  const start = text.indexOf("{");
-  const end = text.lastIndexOf("}");
-  try {
-    const data = JSON.parse(text.slice(start, end + 1));
-    const classroom = parseVersion(data?.classroom);
-    const home = parseVersion(data?.home);
-    if (classroom && home) return { classroom, home };
-  } catch {}
+  const unfenced = text.replace(/```(?:json)?/gi, "");
+  for (const source of [unfenced, text]) {
+    for (let i = source.indexOf("{"); i !== -1; i = source.indexOf("{", i + 1)) {
+      const candidate = matchBraces(source, i);
+      if (!candidate) continue;
+      try {
+        const data = JSON.parse(candidate);
+        const classroom = parseVersion(data?.classroom);
+        const home = parseVersion(data?.home);
+        if (classroom && home) return { classroom, home };
+      } catch {}
+    }
+  }
   throw new GenerationError("La respuesta del modelo no tuvo el formato esperado. Puedes intentarlo de nuevo.");
 }
 
