@@ -22,10 +22,11 @@ interface Props {
   profile: Profile;
   seedManual: ManualSections | null;
   situations: Context;
+  observation: string;
   onRestart: () => void;
 }
 
-export default function Manual({ profile, seedManual, situations, onRestart }: Props) {
+export default function Manual({ profile, seedManual, situations, observation, onRestart }: Props) {
   // a seeded demo renders its pre-written manual straight away, with no network call
   const [state, setState] = useState<State>(() =>
     seedManual ? { status: "ready", manual: applyRails(seedManual, profile.flags, strategiesFor(profile)) } : { status: "loading" },
@@ -36,7 +37,7 @@ export default function Manual({ profile, seedManual, situations, onRestart }: P
   function generate() {
     const current = ++attempt.current;
     setState({ status: "loading" });
-    generateManual(profile, situations).then(
+    generateManual(profile, situations, observation).then(
       (manual) => current === attempt.current && setState({ status: "ready", manual }),
       (error) =>
         current === attempt.current &&

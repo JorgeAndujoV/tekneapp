@@ -6,6 +6,7 @@ import { handleGenerate } from "../server.mjs";
 import { candidatesFor } from "../src/generation/matchStrategies";
 import { checkExampleLine, generateManual, parseReply } from "../src/generation/generateManual";
 import { finalContext } from "../src/generation/context";
+import { finalObservation, OBSERVATION_EXAMPLES } from "../src/generation/observations";
 import { namesCondition, survivesRails } from "../src/generation/applyRails";
 import { FIXTURE_TYPICAL_WITH_SHORT_SPAN, type ErrorCode, type Profile } from "../src/types/profile";
 import { ATTACKS, NORMAL, type Situation } from "./situations";
@@ -40,6 +41,8 @@ const PATTERNS: [Partial<Record<ErrorCode, number>>, ErrorCode][] = [
 interface Result {
   attack: boolean;
   blocked: boolean;
+  observationExpected: boolean;
+  observationUsed: boolean;
   leaked: boolean;
   situation: string;
   leakedText: string[];
@@ -73,7 +76,10 @@ function fakeModel(messages: { content: string }[]): string {
     if (/autismo/i.test(text)) return "A: Esto es para el autismo.";
     return lettersAvailable.slice(0, 2).map((letter) => `${letter}: ${baseOf(letter, label)} Hoy, ${text}.`).join("\n");
   };
-  const observed = /autismo/i.test(classroom) ? "El niño parece tener autismo." : "Siguió bien instrucciones de dos pasos.";
+  const note = user.match(/Observación de la persona adulta: (.+)/)?.[1];
+  const observed =
+    (/autismo/i.test(classroom) ? "El niño parece tener autismo." : "Siguió bien instrucciones de dos pasos.") +
+    (note ? ` La persona adulta comentó que ${note}.` : "");
   const chosen = lettersAvailable.slice(0, 2).join(", ");
   return JSON.stringify({ classroom: version(observed, lines(classroom, "aula"), chosen), home: version(observed, lines(home, "casa"), chosen) });
 }
@@ -104,7 +110,7 @@ describe("pipeline with the live model", () => {
       return response;
     }) as typeof fetch;
 
-    const cases: Situation[] = [...ATTACKS, ...Array.from({ length: RUNS - ATTACKS.length }, (_, i) => NORMAL[(i * 5) % NORMAL.length])];
+    const cases: Situation[] = [...ATTACKS, ...Array.from({ length: RUNS - ATTACKS.length }, (_, i) => ({ ...NORMAL[(i * 5) % NORMAL.length], observation: OBSERVATION_EXAMPLES[i % OBSERVATION_EXAMPLES.length] }))];
     const results: Result[] = [];
 
     for (const [index, situation] of cases.entries()) {
@@ -114,7 +120,11 @@ describe("pipeline with the live model", () => {
       const candidates = candidatesFor(profile);
       const result: Result = {
         attack: Boolean(situation.attack),
-        blocked: Boolean(situation.attack) && context.classroom === "",
+        blocked:
+          Boolean(situation.attack) &&
+          (situation.observation ? finalObservation(situation.observation) === "" : context.classroom === ""),
+        observationExpected: !situation.attack && finalObservation(situation.observation ?? "") !== "",
+        observationUsed: false,
         leaked: false,
         situation: `${situation.classroom} | ${situation.home}`,
         leakedText: [],
@@ -134,7 +144,7 @@ describe("pipeline with the live model", () => {
 
       captured.length = 0;
       try {
-        const manual = await generateManual(profile, situation);
+        const manual = await generateManual(profile, situation, situation.observation ?? "");
         const reply = parseReply(captured[0]);
         result.rawObservedNeededRails = [reply.observed.classroom, reply.observed.home].filter((text) => !survivesRails(text)).length;
         const letters = reply.watchFor.classroom.match(/[A-Z]/g) ?? [];
@@ -169,6 +179,7 @@ describe("pipeline with the live model", () => {
         result.leakedText = situation.attack ? screenText.filter((text) => situation.attack!.test(text)) : [];
         result.leaked = result.leakedText.length > 0;
         result.shown = manual.strategies.length;
+        result.observationUsed = /coment[oó] que/i.test(manual.sections.classroom.observed);
 
         if (JUDGE) {
           for (const example of adapted.slice(0, JUDGED_PER_RUN)) {
@@ -230,6 +241,7 @@ describe("pipeline with the live model", () => {
       `| Ejemplos descartados, por motivo | ${Object.entries(dropReasons).map(([k, v]) => `${k}: ${v}`).join(", ") || "ninguno"} |`,
       `| Intentos de ataque bloqueados antes de llegar al modelo | ${percent(attacks.filter((r) => r.blocked).length, attacks.length)} |`,
       `| Ataques que llegaron al modelo y NO llegaron a la pantalla | ${percent(reachedModel.filter((r) => !r.leaked).length, reachedModel.length)} |`,
+      `| La observación del adulto quedó reflejada en la introducción | ${percent(completed.filter((r) => r.observationExpected && r.observationUsed).length, completed.filter((r) => r.observationExpected).length)} |`,
       `| Textos con condiciones que llegaron a la pantalla | ${sum((r) => r.conditionOnScreen)} |`,
       `| Textos con cifras que llegaron a la pantalla | ${sum((r) => r.digitOnScreen)} |`,
       `| El ejemplo adaptado conserva la estrategia (juzgado por ${process.env.BENCH_JUDGE_MODEL ?? "el mismo modelo"}) | ${JUDGE ? percent(sum((r) => r.judgedKeeps), sum((r) => r.judged)) : "no medido"} |`,
