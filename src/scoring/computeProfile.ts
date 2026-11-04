@@ -27,20 +27,21 @@ export function isResponseComplete(taps: Tap[], expected: string[]): boolean {
 }
 
 export function classifyTrial(taps: Tap[], expected: string[]): TrialOutcome {
-  const response = responseTaps(taps).slice(0, expected.length);
-  if (response.length === 0) return "noResponse";
-  if (response.length < expected.length) return "incomplete";
-  if (response.every((id, i) => id === expected[i])) return "correct";
-  const sameCards = [...response].sort().join() === [...expected].sort().join();
-  return sameCards ? "wrongOrder" : "wrongElement";
+  return classifyResponse(responseTaps(taps), expected);
 }
 
-// a card tapped while the instruction was still playing, then a different card in that same position afterwards
-// this definition needs a clearer answer from the clinical team: a tap-only surface has no explicit undo
-function selfCorrections(taps: Tap[]): number {
-  const early = taps.filter((tap) => tap.t < 0 && tap.cardId !== null).map((tap) => tap.cardId);
-  const response = responseTaps(taps);
-  return early.filter((id, i) => i < response.length && response[i] !== id).length;
+export function classifySelection(selection: Tap[], expected: string[]): TrialOutcome {
+  const response = selection.flatMap((tap) => (tap.cardId === null ? [] : [tap.cardId]));
+  return classifyResponse(response, expected);
+}
+
+function classifyResponse(response: string[], expected: string[]): TrialOutcome {
+  const answer = response.slice(0, expected.length);
+  if (answer.length === 0) return "noResponse";
+  if (answer.length < expected.length) return "incomplete";
+  if (answer.every((id, i) => id === expected[i])) return "correct";
+  const sameCards = [...answer].sort().join() === [...expected].sort().join();
+  return sameCards ? "wrongOrder" : "wrongElement";
 }
 
 function median(values: number[]): number | null {
@@ -59,7 +60,11 @@ function proportionCorrect(outcomes: TrialOutcome[]): number | null {
 export function computeProfile(session: Session, trials: TrialSpec[]): Profile {
   const scored = session.results.flatMap((result: TrialResult) => {
     const spec = trials.find((trial) => trial.id === result.trialId);
-    return spec ? [{ spec, result, outcome: classifyTrial(result.taps, spec.expected) }] : [];
+    if (!spec) return [];
+    const outcome = result.finalSelection
+      ? classifySelection(result.finalSelection, spec.expected)
+      : classifyTrial(result.taps, spec.expected);
+    return [{ spec, result, outcome }];
   });
 
   const accuracy = Object.fromEntries(
@@ -82,7 +87,7 @@ export function computeProfile(session: Session, trials: TrialSpec[]): Profile {
   }));
 
   const firstTaps = scored.flatMap(({ result }) => {
-    const first = result.taps.find((tap) => tap.t >= 0);
+    const first = (result.finalSelection ?? result.taps).find((tap) => tap.t >= 0);
     return first ? [first.t] : [];
   });
 
@@ -96,7 +101,7 @@ export function computeProfile(session: Session, trials: TrialSpec[]): Profile {
     orderCost: forward === null || reversed === null ? null : forward - reversed,
     medianFirstTapMs: median(firstTaps),
     prematureStarts: scored.filter(({ result }) => result.taps.some((tap) => tap.t < 0)).length,
-    selfCorrections: scored.reduce((sum, { result }) => sum + selfCorrections(result.taps), 0),
+    selfCorrections: scored.reduce((sum, { result }) => sum + (result.selfCorrections ?? 0), 0),
     replaysRequested: scored.filter(({ result }) => result.replayed).length,
     trialsAttempted: scored.filter(({ result }) => result.taps.some((tap) => tap.cardId !== null)).length,
     trialsCompleted: scored.filter(({ result }) => !result.abandoned).length,

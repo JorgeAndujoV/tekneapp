@@ -95,4 +95,18 @@ describe("computeProfile", () => {
     const profile = computeProfile(session(results), TRIALS);
     expect(profile.measures.prematureStarts).toBe(1);
   });
+
+  it("scores the final ordered selection and counts only explicit deselections as self-corrections", () => {
+    const results = TRIALS.map((trial) => correct(trial.id));
+    const multiStep = results.find((result) => result.trialId === "t03")!;
+    const expected = expectedOf("t03");
+    multiStep.taps = [{ cardId: "y-c", t: 200 }, { cardId: "b-c", t: 400 }];
+    multiStep.finalSelection = expected.map((cardId, index) => ({ cardId, t: 600 + index * 300 }));
+    multiStep.selfCorrections = 2;
+
+    const profile = computeProfile(session(results), TRIALS);
+
+    expect(profile.measures.accuracy.twoActions).toBe(1);
+    expect(profile.measures.selfCorrections).toBe(2);
+  });
 });
