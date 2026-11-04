@@ -54,6 +54,7 @@ LLM_MODEL=google/gemma-4-31b-it:free
 - **OpenRouter** (the default): create a key at openrouter.ai. The example uses Google's Gemma 4 31B free model, confirmed in OpenRouter's catalog on 2026-11-03. Free model availability and limits can change, so verify it again before a demo.
 - **Gemini**: `LLM_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai`, with a Gemini API key and a current Gemini model id.
 - Any other OpenAI-compatible gateway works by changing the same variables.
+- **Claude**: set `LLM_PROVIDER=anthropic`, put an Anthropic API key (console.anthropic.com) in `LLM_API_KEY` and `LLM_MODEL=claude-opus-5`. `LLM_BASE_URL` is ignored. This path uses Anthropic's own SDK, so the reply is guaranteed to have the manual's JSON shape. If a safety check declines a request, it is re-run on Anthropic's recommended fallback model.
 
 When the model call fails (wrong key, rate limit, no internet, a timeout after 30 s), the manual screen shows the reason and offers a manual retry. Nothing retries silently, and no text is generated in the browser.
 
