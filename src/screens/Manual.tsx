@@ -4,6 +4,7 @@ import type { ManualSections, ManualVersion, RailedManual, Strategy } from "../t
 import { TRIALS } from "../data/trials";
 import { applyRails } from "../generation/applyRails";
 import { GenerationError, generateManual, strategiesFor } from "../generation/generateManual";
+import type { Context } from "../generation/context";
 
 type Version = "classroom" | "home";
 
@@ -20,10 +21,11 @@ const VERSION_LABEL: Record<Version, string> = {
 interface Props {
   profile: Profile;
   seedManual: ManualSections | null;
+  situations: Context;
   onRestart: () => void;
 }
 
-export default function Manual({ profile, seedManual, onRestart }: Props) {
+export default function Manual({ profile, seedManual, situations, onRestart }: Props) {
   // a seeded demo renders its pre-written manual straight away, with no network call
   const [state, setState] = useState<State>(() =>
     seedManual ? { status: "ready", manual: applyRails(seedManual, profile.flags) } : { status: "loading" },
@@ -34,7 +36,7 @@ export default function Manual({ profile, seedManual, onRestart }: Props) {
   function generate() {
     const current = ++attempt.current;
     setState({ status: "loading" });
-    generateManual(profile).then(
+    generateManual(profile, situations).then(
       (manual) => current === attempt.current && setState({ status: "ready", manual }),
       (error) =>
         current === attempt.current &&

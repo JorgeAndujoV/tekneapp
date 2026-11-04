@@ -163,6 +163,10 @@ function tidy(text: string): string {
     .trim();
 }
 
+export function survivesRails(text: string): boolean {
+  return railText(text) === tidy(text);
+}
+
 function railText(text: string): string {
   return tidy(stripConditions(stripScores(text)));
 }

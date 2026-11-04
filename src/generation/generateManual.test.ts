@@ -1,29 +1,31 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { FIXTURE_TYPICAL_WITH_SHORT_SPAN, type Flag } from "../types/profile";
-import { generateManual, parseObserved, strategiesFor } from "./generateManual";
+import { generateManual, parseReply, strategiesFor } from "./generateManual";
 
 const VALID = {
   classroom: { observed: "a", toTry: "", watchFor: "" },
   home: { observed: "d", toTry: "", watchFor: "" },
 };
 
-describe("parseObserved", () => {
+const PARSED = { observed: { classroom: "a", home: "d" }, toTry: { classroom: "", home: "" } };
+
+describe("parseReply", () => {
   it("parses a clean JSON response", () => {
-    expect(parseObserved(JSON.stringify(VALID))).toEqual({ classroom: "a", home: "d" });
+    expect(parseReply(JSON.stringify(VALID))).toEqual(PARSED);
   });
 
   it("parses JSON wrapped in a markdown fence with trailing prose", () => {
     const text = `Aquí tienes el manual:\n\`\`\`json\n${JSON.stringify(VALID)}\n\`\`\`\n¡Espero que ayude!`;
-    expect(parseObserved(text)).toEqual({ classroom: "a", home: "d" });
+    expect(parseReply(text)).toEqual(PARSED);
   });
 
   it("ignores a stray brace in commentary before the real object", () => {
     const text = `Nota: usa { con cuidado.\n${JSON.stringify(VALID)}`;
-    expect(parseObserved(text)).toEqual({ classroom: "a", home: "d" });
+    expect(parseReply(text)).toEqual(PARSED);
   });
 
   it("throws GenerationError when no valid object is found", () => {
-    expect(() => parseObserved("no hay json aquí")).toThrow();
+    expect(() => parseReply("no hay json aquí")).toThrow();
   });
 });
 

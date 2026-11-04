@@ -1,9 +1,12 @@
 import { promptView, REFERRAL_FIRST, type Profile } from "../types/profile";
 import type { ManualSections, RailedManual, Strategy } from "../types/manual";
 import { matchStrategies } from "./matchStrategies";
-import { withStrategies } from "./strategyText";
+import { withStrategies, type Examples } from "./strategyText";
 import { buildPrompt } from "./buildPrompt";
-import { applyRails } from "./applyRails";
+import { applyRails, survivesRails } from "./applyRails";
+import { finalContext, NO_CONTEXT, type Context } from "./context";
+
+const MAX_EXAMPLE_LENGTH = 240;
 
 const CLIENT_TIMEOUT_MS = 60_000;
 
@@ -48,8 +51,15 @@ function asText(value: unknown): string | null {
   return null;
 }
 
-function parseObservedText(value: unknown): string | null {
-  return asText((value as Record<string, unknown> | null)?.observed);
+interface Reply {
+  observed: { classroom: string; home: string };
+  toTry: { classroom: string; home: string };
+}
+
+function parseVersion(value: unknown): { observed: string; toTry: string } | null {
+  const v = value as Record<string, unknown> | null;
+  const observed = asText(v?.observed);
+  return observed ? { observed, toTry: typeof v?.toTry === "string" ? v.toTry : "" } : null;
 }
 
 // returns the substring from `start` to its matching "}", or null if braces never balance;
@@ -75,7 +85,7 @@ function matchBraces(text: string, start: number): string | null {
 
 // tries every "{" in the text as a possible start, so a stray unmatched brace in commentary
 // before or after the real object (or a ```json fence around it) doesn't break the extraction
-export function parseObserved(text: string): { classroom: string; home: string } {
+export function parseReply(text: string): Reply {
   const unfenced = text.replace(/```(?:json)?/gi, "");
   for (const source of [unfenced, text]) {
     for (let i = source.indexOf("{"); i !== -1; i = source.indexOf("{", i + 1)) {
@@ -83,9 +93,14 @@ export function parseObserved(text: string): { classroom: string; home: string }
       if (!candidate) continue;
       try {
         const data = JSON.parse(candidate);
-        const classroom = parseObservedText(data?.classroom);
-        const home = parseObservedText(data?.home);
-        if (classroom && home) return { classroom, home };
+        const classroom = parseVersion(data?.classroom);
+        const home = parseVersion(data?.home);
+        if (classroom && home) {
+          return {
+            observed: { classroom: classroom.observed, home: home.observed },
+            toTry: { classroom: classroom.toTry, home: home.toTry },
+          };
+        }
       } catch {}
     }
   }
@@ -93,13 +108,27 @@ export function parseObserved(text: string): { classroom: string; home: string }
 }
 
 // this is the one network call in the app
-export async function generateManual(profile: Profile): Promise<RailedManual> {
+export function adaptedExamples(toTry: string, strategies: Strategy[], hasSituation: boolean): Record<string, string> {
+  const found: Record<string, string> = {};
+  if (!hasSituation) return found;
+  for (const line of toTry.split("\n")) {
+    const match = line.match(/^\s*-?\s*([A-Z])\s*:\s*(.+)$/);
+    if (!match) continue;
+    const strategy = strategies[match[1].charCodeAt(0) - 65];
+    const text = match[2].trim();
+    if (strategy && text.length <= MAX_EXAMPLE_LENGTH && !/\d/.test(text) && survivesRails(text)) found[strategy.id] = text;
+  }
+  return found;
+}
+
+export async function generateManual(profile: Profile, situations: Context = NO_CONTEXT): Promise<RailedManual> {
   if (REFERRAL_FIRST.some((flag) => profile.flags.includes(flag))) return applyRails(REFERRAL_SECTIONS, profile.flags);
 
   const strategies = matchStrategies(profile);
   if (strategies.length === 0) return applyRails(INSUFFICIENT_SECTIONS, profile.flags);
 
-  const messages = buildPrompt(promptView(profile));
+  const context = finalContext(situations);
+  const messages = buildPrompt(promptView(profile), strategies, context);
 
   let response: Response;
   try {
@@ -117,7 +146,12 @@ export async function generateManual(profile: Profile): Promise<RailedManual> {
   if (!response.ok) throw new GenerationError(data?.error ?? "No se pudo generar el manual.");
   if (typeof data?.text !== "string") throw new GenerationError("El servidor devolvió una respuesta vacía.");
 
-  return applyRails(withStrategies(parseObserved(data.text), strategies), profile.flags);
+  const reply = parseReply(data.text);
+  const examples: Examples = {
+    classroom: adaptedExamples(reply.toTry.classroom, strategies, context.classroom !== ""),
+    home: adaptedExamples(reply.toTry.home, strategies, context.home !== ""),
+  };
+  return applyRails(withStrategies(reply.observed, strategies, examples), profile.flags);
 }
 
 export function strategiesFor(profile: Profile): Strategy[] {
