@@ -16,22 +16,44 @@ const SCORE_PATTERNS: RegExp[] = [
 
 // compared without accents or capitals; extend this list as the clinical team sees fit
 export const BLOCKED_TERMS = [
-  "autismo",
-  "autista",
+  "autis",
   "asperger",
   "tdah",
-  "deficit de atencion",
-  "hiperactividad",
-  "dislexia",
+  "deficit",
+  "hiperactiv",
+  "dislexi",
+  "discalculi",
+  "disgrafi",
+  "dispraxi",
+  "disfasi",
+  "tartamude",
+  "tourette",
+  "epilepsi",
+  "paralisis cerebral",
+  "sindrome",
+  "discapacidad",
+  "retraso",
+  "mutismo",
+  "hipoacusi",
+  "sordera",
+  "neurodiverg",
+  "enfermedad",
+  "patolog",
   "trastorno",
-  "diagnostico",
-  "diagnosticar",
+  "diagnos",
   "tamizaje",
   "screening",
   "deteccion temprana",
   "riesgo",
   "monitoreo",
+  "autism",
+  "adhd",
+  "dyslexia",
+  "disorder",
+  "syndrome",
 ];
+
+export const BLOCKED_ACRONYMS = ["tea", "tel", "tda", "tod", "tgd", "tdi", "asd"];
 
 export const LIMITS =
   "Cuando a una niña o a un niño le cuesta seguir instrucciones, puede haber varias razones que esta tarea no separa: la audición, el lenguaje, el ruido del lugar o la memoria. Por eso este manual solo describe lo que hizo. Conviene revisar la audición si mira la boca de quien habla o gira la cabeza para escuchar, si pide que le repitan casi siempre, o si en el salón o en casa responde mucho peor que en esta tarea tranquila. También influye el idioma que se habla en casa.";
@@ -72,7 +94,10 @@ function normalize(text: string): string {
 
 function namesCondition(sentence: string): boolean {
   const plain = normalize(sentence);
-  return BLOCKED_TERMS.some((term) => new RegExp(`(^|[^a-z])${term}`).test(plain));
+  return (
+    BLOCKED_TERMS.some((term) => new RegExp(`(^|[^a-z])${term}`).test(plain)) ||
+    BLOCKED_ACRONYMS.some((acronym) => new RegExp(`(^|[^a-z])${acronym}(?![a-z])`).test(plain))
+  );
 }
 
 // a global regexp keeps a lastIndex; reset it before every independent .test() or it misses matches

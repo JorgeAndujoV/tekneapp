@@ -65,3 +65,24 @@ describe("applyRails — fixed manual text", () => {
     expect(result.sections.classroom.observed).toBe("Hace los pasos con calma.");
   });
 });
+
+describe("applyRails — blocked condition terms", () => {
+  it.each([
+    "Parece un trastorno del lenguaje.",
+    "Podría ser TEA.",
+    "Tiene dislexia.",
+    "Muestra signos de discapacidad.",
+    "Sufre de hipoacusia.",
+    "Es un niño neurodivergente.",
+    "Hay un retraso en su desarrollo.",
+    "Parece ADHD.",
+  ])("removes the sentence %s", (sentence) => {
+    const result = applyRails(sections(`${sentence} Hace los pasos con calma.`), []);
+    expect(result.sections.classroom.observed).toBe("Hace los pasos con calma.");
+  });
+
+  it("keeps ordinary words that contain a blocked acronym", () => {
+    const text = "Fue al teatro y habló por teléfono con su tía.";
+    expect(applyRails(sections(text), []).sections.classroom.observed).toBe(text);
+  });
+});
