@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import type { Profile } from "../types/profile";
-import type { ManualSections, ManualVersion, RailedManual } from "../types/manual";
+import type { ManualSections, ManualVersion, RailedManual, Strategy } from "../types/manual";
 import { TRIALS } from "../data/trials";
 import { applyRails } from "../generation/applyRails";
-import { GenerationError, generateManual } from "../generation/generateManual";
+import { GenerationError, generateManual, strategiesFor } from "../generation/generateManual";
+import type { Context } from "../generation/context";
 
 type Version = "classroom" | "home";
 
@@ -20,13 +21,14 @@ const VERSION_LABEL: Record<Version, string> = {
 interface Props {
   profile: Profile;
   seedManual: ManualSections | null;
+  situations: Context;
   onRestart: () => void;
 }
 
-export default function Manual({ profile, seedManual, onRestart }: Props) {
+export default function Manual({ profile, seedManual, situations, onRestart }: Props) {
   // a seeded demo renders its pre-written manual straight away, with no network call
   const [state, setState] = useState<State>(() =>
-    seedManual ? { status: "ready", manual: applyRails(seedManual, profile.flags) } : { status: "loading" },
+    seedManual ? { status: "ready", manual: applyRails(seedManual, profile.flags, strategiesFor(profile)) } : { status: "loading" },
   );
   const [version, setVersion] = useState<Version>("classroom");
   const attempt = useRef(0);
@@ -34,7 +36,7 @@ export default function Manual({ profile, seedManual, onRestart }: Props) {
   function generate() {
     const current = ++attempt.current;
     setState({ status: "loading" });
-    generateManual(profile).then(
+    generateManual(profile, situations).then(
       (manual) => current === attempt.current && setState({ status: "ready", manual }),
       (error) =>
         current === attempt.current &&
@@ -103,6 +105,8 @@ export default function Manual({ profile, seedManual, onRestart }: Props) {
             label={VERSION_LABEL[v]}
             content={state.manual.sections[v]}
             notices={state.manual.notices}
+            limits={state.manual.limits}
+            evidence={state.manual.strategies}
             closing={state.manual.closing}
             childCode={profile.childCode}
             date={date}
@@ -132,6 +136,8 @@ interface PageProps {
   label: string;
   content: ManualVersion;
   notices: string[];
+  limits: string;
+  evidence: Strategy[];
   closing: string;
   childCode: string;
   date: string;
@@ -141,7 +147,19 @@ interface PageProps {
 }
 
 // each version prints as its own page, so the classroom and home copies can be handed out separately
-function VersionPage({ label, content, notices, closing, childCode, date, isDemo, visible, breakAfter }: PageProps) {
+function VersionPage({
+  label,
+  content,
+  notices,
+  limits,
+  evidence,
+  closing,
+  childCode,
+  date,
+  isDemo,
+  visible,
+  breakAfter,
+}: PageProps) {
   return (
     <article
       className={`flex-col gap-6 print:flex print:gap-4 ${visible ? "flex" : "hidden"} ${
@@ -159,7 +177,7 @@ function VersionPage({ label, content, notices, closing, childCode, date, isDemo
       </header>
 
       {notices.map((notice) => (
-        <p key={notice} className="rounded-xl border-l-4 border-amber-600 bg-amber-50 p-4 text-lg leading-relaxed print:p-3 print:text-[10.5pt]">
+        <p key={notice} className="rounded-2xl border-2 border-line bg-white p-4 text-lg leading-relaxed print:p-3 print:text-[10.5pt]">
           {notice}
         </p>
       ))}
@@ -167,6 +185,20 @@ function VersionPage({ label, content, notices, closing, childCode, date, isDemo
       <Section title="Lo que observamos" text={content.observed} />
       <Section title="Qué probar" text={content.toTry} />
       <Section title="A qué estar atentos" text={content.watchFor} />
+      <Section title="Lo que esta tarea no puede decir" text={limits} />
+
+      {evidence.length > 0 && (
+        <section className="text-base leading-relaxed print:text-[9.5pt] print:leading-snug">
+          <h2 className="mb-2 text-xl font-semibold print:mb-1 print:text-[11pt]">Sobre las estrategias</h2>
+          <ul className="list-disc space-y-1 pl-6">
+            {evidence.map((strategy) => (
+              <li key={strategy.id}>
+                <span className="font-medium">{strategy.title}.</span> {strategy.evidenceNote} Fuente: {strategy.source}.
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <footer className="border-t-2 border-line pt-4 text-base leading-relaxed print:pt-3 print:text-[9.5pt]">
         {closing}

@@ -1,8 +1,13 @@
-import { promptView, type Profile } from "../types/profile";
-import type { ManualSections, ManualVersion, RailedManual } from "../types/manual";
-import { matchStrategies } from "./matchStrategies";
-import { buildPrompt } from "./buildPrompt";
-import { applyRails } from "./applyRails";
+import { promptView, REFERRAL_FIRST, type Profile } from "../types/profile";
+import type { ManualSections, RailedManual, Strategy } from "../types/manual";
+import { candidatesFor, matchStrategies, selectStrategies } from "./matchStrategies";
+import { withStrategies, type Examples } from "./strategyText";
+import { buildPrompt, describeProfile } from "./buildPrompt";
+import { applyRails, survivesRails } from "./applyRails";
+import { finalContext, hasContext, NO_CONTEXT, type Context } from "./context";
+import { copiesNote, keepsFrame } from "./copyGuard";
+
+const MAX_EXAMPLE_LENGTH = 240;
 
 const CLIENT_TIMEOUT_MS = 60_000;
 
@@ -24,6 +29,21 @@ export const INSUFFICIENT_SECTIONS: ManualSections = {
   },
 };
 
+export const REFERRAL_SECTIONS: ManualSections = {
+  classroom: {
+    observed: "En esta ocasión no se describe cómo sigue instrucciones.",
+    toTry: "Por ahora no proponemos estrategias. Primero sigan la recomendación del aviso de arriba.",
+    watchFor:
+      "En clase, anoten ejemplos concretos de instrucciones que sigue sin problema y de las que no, para compartirlos con un profesional.",
+  },
+  home: {
+    observed: "En esta ocasión no se describe cómo sigue instrucciones.",
+    toTry: "Por ahora no proponemos estrategias. Primero sigan la recomendación del aviso de arriba.",
+    watchFor:
+      "En casa, anoten ejemplos concretos de instrucciones que sigue sin problema y de las que no, para compartirlos con un profesional.",
+  },
+};
+
 export class GenerationError extends Error {}
 
 function asText(value: unknown): string | null {
@@ -32,12 +52,17 @@ function asText(value: unknown): string | null {
   return null;
 }
 
-function parseVersion(value: unknown): ManualVersion | null {
+interface Reply {
+  observed: { classroom: string; home: string };
+  toTry: { classroom: string; home: string };
+  watchFor: { classroom: string; home: string };
+}
+
+function parseVersion(value: unknown): { observed: string; toTry: string; watchFor: string } | null {
   const v = value as Record<string, unknown> | null;
   const observed = asText(v?.observed);
-  const toTry = asText(v?.toTry);
-  const watchFor = asText(v?.watchFor);
-  return observed && toTry && watchFor ? { observed, toTry, watchFor } : null;
+  const text = (field: unknown) => (typeof field === "string" ? field : "");
+  return observed ? { observed, toTry: text(v?.toTry), watchFor: text(v?.watchFor) } : null;
 }
 
 // returns the substring from `start` to its matching "}", or null if braces never balance;
@@ -63,7 +88,7 @@ function matchBraces(text: string, start: number): string | null {
 
 // tries every "{" in the text as a possible start, so a stray unmatched brace in commentary
 // before or after the real object (or a ```json fence around it) doesn't break the extraction
-export function parseSections(text: string): ManualSections {
+export function parseReply(text: string): Reply {
   const unfenced = text.replace(/```(?:json)?/gi, "");
   for (const source of [unfenced, text]) {
     for (let i = source.indexOf("{"); i !== -1; i = source.indexOf("{", i + 1)) {
@@ -73,19 +98,79 @@ export function parseSections(text: string): ManualSections {
         const data = JSON.parse(candidate);
         const classroom = parseVersion(data?.classroom);
         const home = parseVersion(data?.home);
-        if (classroom && home) return { classroom, home };
+        if (classroom && home) {
+          return {
+            observed: { classroom: classroom.observed, home: home.observed },
+            toTry: { classroom: classroom.toTry, home: home.toTry },
+            watchFor: { classroom: classroom.watchFor, home: home.watchFor },
+          };
+        }
       } catch {}
     }
   }
   throw new GenerationError("La respuesta del modelo no tuvo el formato esperado. Puedes intentarlo de nuevo.");
 }
 
-// this is the one network call in the app
-export async function generateManual(profile: Profile): Promise<RailedManual> {
-  const strategies = matchStrategies(profile);
-  if (strategies.length === 0) return applyRails(INSUFFICIENT_SECTIONS, profile.flags);
+export type ExampleVerdict =
+  | { ok: true; strategy: Strategy; text: string }
+  | { ok: false; reason: "format" | "unknown" | "long" | "digit" | "rails" | "copy" | "far" };
 
-  const messages = buildPrompt(promptView(profile), strategies);
+type Setting = "classroom" | "home";
+
+const OBSERVED_COPY_RUN = 3;
+const EXAMPLE_COPY_RUN = 6;
+const FRAME_SHARE = 0.3;
+
+export function checkExampleLine(line: string, candidates: Strategy[], setting: Setting, notes: string[]): ExampleVerdict {
+  const match = line.match(/^\s*-?\s*([A-Z])\s*:\s*(.+)$/);
+  if (!match) return { ok: false, reason: "format" };
+  const strategy = candidates[match[1].charCodeAt(0) - 65];
+  const text = match[2].trim();
+  if (!strategy) return { ok: false, reason: "unknown" };
+  if (text.length > MAX_EXAMPLE_LENGTH) return { ok: false, reason: "long" };
+  if (/\d/.test(text)) return { ok: false, reason: "digit" };
+  if (!survivesRails(text)) return { ok: false, reason: "rails" };
+  if (notes.some((note) => copiesNote(text, note, EXAMPLE_COPY_RUN))) return { ok: false, reason: "copy" };
+  if (!keepsFrame(strategy.example[setting], text, FRAME_SHARE)) return { ok: false, reason: "far" };
+  return { ok: true, strategy, text };
+}
+
+export function adaptedExamples(
+  toTry: string,
+  strategies: Strategy[],
+  setting: Setting,
+  context: Context,
+): Record<string, string> {
+  const found: Record<string, string> = {};
+  if (context[setting] === "") return found;
+  const notes = [context.classroom, context.home].filter((note) => note !== "");
+  for (const line of toTry.split("\n")) {
+    const verdict = checkExampleLine(line, strategies, setting, notes);
+    if (verdict.ok) found[verdict.strategy.id] = verdict.text;
+  }
+  return found;
+}
+
+export function safeObserved(text: string, notes: string[], profile: Profile): string {
+  if (!notes.some((note) => copiesNote(text, note, OBSERVED_COPY_RUN))) return text;
+  return describeProfile(promptView(profile).descriptors).slice(0, 5).join(" ");
+}
+
+export function chosenStrategies(watchFor: string, candidates: Strategy[]): Strategy[] {
+  const letters = watchFor.match(/[A-Z]/g) ?? [];
+  const chosen = letters.flatMap((letter) => candidates[letter.charCodeAt(0) - 65] ?? []);
+  return chosen.filter((strategy, i) => chosen.indexOf(strategy) === i);
+}
+
+export async function generateManual(profile: Profile, situations: Context = NO_CONTEXT): Promise<RailedManual> {
+  if (REFERRAL_FIRST.some((flag) => profile.flags.includes(flag))) return applyRails(REFERRAL_SECTIONS, profile.flags);
+
+  const matched = matchStrategies(profile);
+  if (matched.length === 0) return applyRails(INSUFFICIENT_SECTIONS, profile.flags);
+
+  const context = finalContext(situations);
+  const candidates = hasContext(context) ? candidatesFor(profile) : matched;
+  const messages = buildPrompt(promptView(profile), candidates, context);
 
   let response: Response;
   try {
@@ -103,5 +188,22 @@ export async function generateManual(profile: Profile): Promise<RailedManual> {
   if (!response.ok) throw new GenerationError(data?.error ?? "No se pudo generar el manual.");
   if (typeof data?.text !== "string") throw new GenerationError("El servidor devolvió una respuesta vacía.");
 
-  return applyRails(parseSections(data.text), profile.flags);
+  const reply = parseReply(data.text);
+  const examples: Examples = {
+    classroom: adaptedExamples(reply.toTry.classroom, candidates, "classroom", context),
+    home: adaptedExamples(reply.toTry.home, candidates, "home", context),
+  };
+  const notes = [context.classroom, context.home].filter((note) => note !== "");
+  const observed = {
+    classroom: safeObserved(reply.observed.classroom, notes, profile),
+    home: safeObserved(reply.observed.home, notes, profile),
+  };
+  const shown = hasContext(context)
+    ? selectStrategies(profile, chosenStrategies(reply.watchFor.classroom || reply.watchFor.home, candidates))
+    : matched;
+  return applyRails(withStrategies(observed, shown, examples), profile.flags, shown);
+}
+
+export function strategiesFor(profile: Profile): Strategy[] {
+  return REFERRAL_FIRST.some((flag) => profile.flags.includes(flag)) ? [] : matchStrategies(profile);
 }

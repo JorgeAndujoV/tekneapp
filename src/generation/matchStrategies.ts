@@ -1,50 +1,65 @@
 import type { Profile } from "../types/profile";
-import type { Strategy, Trigger } from "../types/manual";
+import { DOMINANT_MIN_TRIALS, ERROR_CODES, SEVERITY } from "../types/profile";
+import type { Strategy, StrategyCode } from "../types/manual";
 import library from "../data/strategies.json";
 
 export const STRATEGIES = library.strategies as Strategy[];
 
-function matches(trigger: Trigger, profile: Profile): boolean {
-  return Object.entries(trigger).every(
-    ([field, value]) => profile.descriptors[field as keyof Trigger] === value,
-  );
-}
-
 const LIMIT = 3;
 
-// the only descriptor fields that can take the value "struggles"
-const STRUGGLE_FIELDS = ["orderHandling", "negationHandling"] as const;
-
-interface Ranked {
-  strategy: Strategy;
-  order: number;
-  score: number;
+function targetCodes(profile: Profile): StrategyCode[] {
+  const { codeCounts, dominantCode } = profile.measures;
+  const recurring = SEVERITY.filter((code) => code !== dominantCode && codeCounts[code] >= DOMINANT_MIN_TRIALS).sort(
+    (a, b) => codeCounts[b] - codeCounts[a],
+  );
+  const targets: StrategyCode[] = [...(dominantCode ? [dominantCode] : []), ...recurring];
+  if (profile.descriptors.startsEarly) targets.push("E7");
+  if (profile.descriptors.asksForRepeats !== "never") targets.push("F1");
+  return targets;
 }
 
-function rank(strategies: Strategy[], profile: Profile): Ranked[] {
-  return strategies
-    .filter((strategy) => matches(strategy.trigger, profile))
-    .map((strategy, order) => ({ strategy, order, score: Object.keys(strategy.trigger).length }))
-    .sort((a, b) => b.score - a.score || a.order - b.order);
+const isUniversal = (strategy: Strategy) => strategy.codes.length === ERROR_CODES.length;
+
+const covers = (strategy: Strategy, code: StrategyCode) => !isUniversal(strategy) && strategy.codes.includes(code);
+
+const variant = (sessionId: string) => [...sessionId].reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
+
+function eligibleFor(code: StrategyCode, strategies: Strategy[], taken: Strategy[]): Strategy[] {
+  const eligible = strategies.filter((strategy) => strategy.codes.includes(code) && !taken.includes(strategy));
+  const specific = eligible.filter((strategy) => !isUniversal(strategy));
+  return specific.length > 0 ? specific : eligible;
 }
 
-// a session that is too short gets no strategies at all; the manual says so instead
-export function matchStrategies(profile: Profile, strategies: Strategy[] = STRATEGIES): Strategy[] {
+export function candidatesFor(profile: Profile, strategies: Strategy[] = STRATEGIES): Strategy[] {
+  if (profile.reliability === "insufficient") return [];
+  const targets = targetCodes(profile);
+  if (targets.length === 0) return strategies.filter(isUniversal).slice(0, 1);
+  const pool = targets.flatMap((code) => eligibleFor(code, strategies, []));
+  return strategies.filter((strategy) => pool.includes(strategy));
+}
+
+export function selectStrategies(
+  profile: Profile,
+  preferred: Strategy[] = [],
+  strategies: Strategy[] = STRATEGIES,
+): Strategy[] {
   if (profile.reliability === "insufficient") return [];
 
-  const pool = rank(strategies, profile);
+  const targets = targetCodes(profile);
+  if (targets.length === 0) return strategies.filter(isUniversal).slice(0, 1);
 
-  // a dimension the profile struggles with must not lose its strategy just because other
-  // matched strategies happen to have more trigger keys and so score higher by specificity
-  const guaranteed: Ranked[] = [];
-  for (const field of STRUGGLE_FIELDS) {
-    if (profile.descriptors[field] !== "struggles") continue;
-    const best = pool.find(
-      (entry) => entry.strategy.trigger[field] === "struggles" && !guaranteed.includes(entry),
-    );
-    if (best) guaranteed.push(best);
+  const offset = variant(profile.sessionId);
+  const chosen: Strategy[] = [];
+  for (const code of targets) {
+    if (chosen.length === LIMIT) break;
+    if (chosen.some((strategy) => covers(strategy, code))) continue;
+    const options = eligibleFor(code, strategies, chosen);
+    const liked = options.find((strategy) => preferred.includes(strategy));
+    const pick = liked ?? (options.length > 0 ? options[offset % options.length] : undefined);
+    if (pick) chosen.push(pick);
   }
-
-  const rest = pool.filter((entry) => !guaranteed.includes(entry));
-  return [...guaranteed, ...rest].slice(0, LIMIT).map(({ strategy }) => strategy);
+  return chosen;
 }
+
+export const matchStrategies = (profile: Profile, strategies: Strategy[] = STRATEGIES) =>
+  selectStrategies(profile, [], strategies);

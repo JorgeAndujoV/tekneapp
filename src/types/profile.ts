@@ -14,7 +14,7 @@
  *   1. The generation side reads `descriptors` only. Never `measures`.
  *      Numbers cannot leak into the manual if the model never receives them.
  *   2. Nothing here says WHY a child failed. We record what happened.
- *      The error taxonomy is a later file, applied to stored taps.
+ *      The error codes below describe the response, never a cause.
  */
 
 // ---------------------------------------------------------------------------
@@ -70,6 +70,22 @@ export interface Session {
   startedAt: string; // ISO
   vocabCheckPassed: boolean;
   results: TrialResult[];
+  redFlag: boolean;
+  homeLanguageNotSpanish: boolean;
+  stoppedForDistress: boolean;
+}
+
+export interface Observations {
+  watchesSpeaker: boolean;
+  worseInClass: boolean;
+  restless: boolean;
+}
+
+export const NO_OBSERVATIONS: Observations = { watchesSpeaker: false, worseInClass: false, restless: false };
+
+export interface Intake {
+  redFlag: boolean;
+  homeLanguageNotSpanish: boolean;
 }
 
 /**
@@ -82,6 +98,23 @@ export type TrialOutcome =
   | "wrongOrder" // right cards, wrong sequence
   | "wrongElement" // right count, at least one wrong card
   | "noResponse";
+
+export type ErrorCode = "E1" | "E2" | "E3" | "E4" | "E5" | "E6" | "E7" | "E8";
+
+export const ERROR_CODES: ErrorCode[] = ["E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8"];
+
+export const SEVERITY: ErrorCode[] = ["E8", "E1", "E2", "E3", "E4", "E6", "E5"];
+
+export const DOMINANT_MIN_TRIALS = 2;
+
+export type WrongAttribute = "colour" | "shape" | "colourAndShape";
+
+export interface TrialCodes {
+  trialId: string;
+  codes: ErrorCode[];
+  wrongAttribute?: WrongAttribute;
+  reversedItem?: boolean;
+}
 
 // ---------------------------------------------------------------------------
 // 3. Measures  — numbers. For matching and for audit. NOT for the prompt.
@@ -101,9 +134,14 @@ export interface Measures {
   prematureStarts: number; // taps before audio ended
   selfCorrections: number; // answer changes: deselections plus replacements of the last pick
   replaysRequested: number;
+  replaysThenCorrect: number;
 
   trialsAttempted: number;
   trialsCompleted: number;
+
+  codeCounts: Record<ErrorCode, number>;
+  dominantCode: ErrorCode | null;
+  confusedAttribute: WrongAttribute | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -119,7 +157,9 @@ export interface Descriptors {
   negationHandling: Holds;
   startsEarly: boolean;
   asksForRepeats: "never" | "sometimes" | "often";
-  pace: "quick" | "measured" | "slow" | "unknown";
+  mainPattern: ErrorCode | null;
+  otherPatterns: ErrorCode[];
+  mixesUp: WrongAttribute | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -128,10 +168,30 @@ export interface Descriptors {
 
 /** Deterministic. Set by rule, never by the model. */
 export type Flag =
+  | "red_flag"
+  | "distress_stop"
   | "vocab_check_failed" // scored vocabulary, not memory — say so in the manual
   | "baseline_failed" // missed 1-action trials: hearing, attention or comprehension
+  | "most_failed"
+  | "replays_often"
+  | "many_no_response"
   | "session_abandoned"
+  | "watches_speaker"
+  | "worse_in_class"
+  | "restless_session"
+  | "home_language"
   | "priority_referral"; // any of the above: this result cannot be read at face value
+
+export const REFERRAL_FIRST: Flag[] = [
+  "distress_stop",
+  "vocab_check_failed",
+  "baseline_failed",
+  "most_failed",
+  "replays_often",
+  "many_no_response",
+  "watches_speaker",
+  "restless_session",
+];
 
 export type Reliability =
   | "ok" // >= 10 trials attempted
@@ -143,11 +203,12 @@ export type Reliability =
 // ---------------------------------------------------------------------------
 
 export interface Profile {
-  schemaVersion: 1;
+  schemaVersion: 2;
   sessionId: string;
   childCode: string;
   grade: 1;
   measures: Measures;
+  trialCodes: TrialCodes[];
   descriptors: Descriptors;
   flags: Flag[];
   reliability: Reliability;
@@ -171,10 +232,15 @@ export function promptView(p: Profile): {
 
 // ---------------------------------------------------------------------------
 // 7. Banding — measures to descriptors. Pure, testable, advisor-tunable.
-//    THESE THRESHOLDS ARE PLACEHOLDERS. R4 replaces them.
 // ---------------------------------------------------------------------------
 
-const STRUGGLE_BELOW = 0.5;
+export const STRUGGLE_BELOW = 0.5;
+export const EARLY_START_TRIALS = 3;
+export const REPLAYS_OFTEN_ABOVE = 0.5;
+export const MOST_FAILED_BELOW = 0.5;
+export const NO_RESPONSE_FROM = 1 / 3;
+
+export const replayShare = (m: Measures) => m.replaysRequested / Math.max(1, m.trialsAttempted);
 
 function holds(acc: number | null): Holds {
   if (acc === null) return "unknown";
@@ -193,21 +259,12 @@ export function describe(m: Measures): Descriptors {
             : "one",
     orderHandling: holds(m.accuracy.reversed),
     negationHandling: holds(m.accuracy.negation),
-    startsEarly: m.prematureStarts >= 3,
+    startsEarly: m.prematureStarts >= EARLY_START_TRIALS,
     asksForRepeats:
-      m.replaysRequested === 0
-        ? "never"
-        : m.replaysRequested <= 3
-          ? "sometimes"
-          : "often",
-    pace:
-      m.medianFirstTapMs === null
-        ? "unknown"
-        : m.medianFirstTapMs < 800
-          ? "quick"
-          : m.medianFirstTapMs <= 3000
-            ? "measured"
-            : "slow",
+      m.replaysRequested === 0 ? "never" : replayShare(m) > REPLAYS_OFTEN_ABOVE ? "often" : "sometimes",
+    mainPattern: m.dominantCode,
+    otherPatterns: SEVERITY.filter((code) => code !== m.dominantCode && m.codeCounts[code] >= DOMINANT_MIN_TRIALS),
+    mixesUp: m.confusedAttribute,
   };
 }
 
@@ -222,6 +279,8 @@ export function assessReliability(m: Measures): Reliability {
 //    before a single real tap exists.
 // ---------------------------------------------------------------------------
 
+const noCodes: Record<ErrorCode, number> = { E1: 0, E2: 0, E3: 0, E4: 0, E5: 0, E6: 0, E7: 0, E8: 0 };
+
 const emptyAccuracy: Record<Dimension, number | null> = {
   baseline: null,
   twoActions: null,
@@ -232,7 +291,7 @@ const emptyAccuracy: Record<Dimension, number | null> = {
 
 /** Breaks at three actions, order is fine, asks for help. */
 export const FIXTURE_TYPICAL_WITH_SHORT_SPAN: Profile = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   sessionId: "demo-001",
   childCode: "NL-1A-07",
   grade: 1,
@@ -251,8 +310,12 @@ export const FIXTURE_TYPICAL_WITH_SHORT_SPAN: Profile = {
     prematureStarts: 0,
     selfCorrections: 0,
     replaysRequested: 3,
+    replaysThenCorrect: 0,
     trialsAttempted: 12,
     trialsCompleted: 12,
+    codeCounts: { ...noCodes, E1: 2, E4: 2, E6: 2 },
+    dominantCode: "E1",
+    confusedAttribute: null,
   },
   descriptors: {
     span: "two",
@@ -260,15 +323,18 @@ export const FIXTURE_TYPICAL_WITH_SHORT_SPAN: Profile = {
     negationHandling: "struggles",
     startsEarly: false,
     asksForRepeats: "sometimes",
-    pace: "measured",
+    mainPattern: "E1",
+    otherPatterns: ["E4", "E6"],
+    mixesUp: null,
   },
+  trialCodes: [],
   flags: [],
   reliability: "ok",
 };
 
 /** Same span, never asks, starts before the instruction ends. Opposite manual. */
 export const FIXTURE_SAME_SPAN_NO_MONITORING: Profile = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   sessionId: "demo-002",
   childCode: "NL-1A-11",
   grade: 1,
@@ -287,8 +353,12 @@ export const FIXTURE_SAME_SPAN_NO_MONITORING: Profile = {
     prematureStarts: 5,
     selfCorrections: 0,
     replaysRequested: 0,
+    replaysThenCorrect: 0,
     trialsAttempted: 12,
     trialsCompleted: 12,
+    codeCounts: { ...noCodes, E3: 2, E4: 2, E6: 2, E7: 5 },
+    dominantCode: "E3",
+    confusedAttribute: null,
   },
   descriptors: {
     span: "two",
@@ -296,15 +366,18 @@ export const FIXTURE_SAME_SPAN_NO_MONITORING: Profile = {
     negationHandling: "struggles",
     startsEarly: true,
     asksForRepeats: "never",
-    pace: "quick",
+    mainPattern: "E3",
+    otherPatterns: ["E4", "E6"],
+    mixesUp: null,
   },
+  trialCodes: [],
   flags: [],
   reliability: "ok",
 };
 
 /** Quit at trial four. The manual must say so and recommend nothing. */
 export const FIXTURE_INSUFFICIENT: Profile = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   sessionId: "demo-003",
   childCode: "NL-1B-02",
   grade: 1,
@@ -317,8 +390,12 @@ export const FIXTURE_INSUFFICIENT: Profile = {
     prematureStarts: 0,
     selfCorrections: 0,
     replaysRequested: 1,
+    replaysThenCorrect: 0,
     trialsAttempted: 4,
     trialsCompleted: 3,
+    codeCounts: noCodes,
+    dominantCode: null,
+    confusedAttribute: null,
   },
   descriptors: {
     span: "unknown",
@@ -326,8 +403,11 @@ export const FIXTURE_INSUFFICIENT: Profile = {
     negationHandling: "unknown",
     startsEarly: false,
     asksForRepeats: "sometimes",
-    pace: "measured",
+    mainPattern: null,
+    otherPatterns: [],
+    mixesUp: null,
   },
+  trialCodes: [],
   flags: ["session_abandoned"],
   reliability: "insufficient",
 };

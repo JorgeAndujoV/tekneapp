@@ -1,16 +1,27 @@
 import { useState } from "react";
 import { SEEDS, type Seed } from "../data/seeds";
+import type { Intake } from "../types/profile";
+import { cleanContext, CONTEXT_MAX, finalContext, NO_CONTEXT, suspicious, type Context } from "../generation/context";
 import { CHILD_CODE_MAX_LENGTH, isValidChildCode, normalizeChildCode } from "../data/childCode";
 
+const RED_FLAG_QUESTIONS = [
+  "Perdió habilidades que ya tenía (por ejemplo, dejó de hablar o de hacer algo que antes hacía)",
+  "Se hace daño a sí misma o a sí mismo",
+  "Hay señales de que sufre maltrato",
+];
+
 interface Props {
-  onBegin: (childCode: string) => void;
+  onBegin: (childCode: string, intake: Intake, context: Context) => void;
   onDemo: (seed: Seed) => void;
 }
 
 export default function Start({ onBegin, onDemo }: Props) {
   const [code, setCode] = useState("");
   const [showDemos, setShowDemos] = useState(false);
+  const [redFlags, setRedFlags] = useState(RED_FLAG_QUESTIONS.map(() => false));
+  const [otherLanguage, setOtherLanguage] = useState(false);
   const [consent, setConsent] = useState(false);
+  const [situations, setSituations] = useState<Context>(NO_CONTEXT);
   const valid = isValidChildCode(code);
 
   return (
@@ -25,7 +36,8 @@ export default function Start({ onBegin, onDemo }: Props) {
         className="flex flex-col gap-3"
         onSubmit={(event) => {
           event.preventDefault();
-          if (valid && consent) onBegin(code);
+          if (valid && consent)
+            onBegin(code, { redFlag: redFlags.some(Boolean), homeLanguageNotSpanish: otherLanguage }, finalContext(situations));
         }}
       >
         <section className="rounded-2xl border-2 border-line bg-white p-4 text-base leading-relaxed">
@@ -42,6 +54,10 @@ export default function Start({ onBegin, onDemo }: Props) {
             Para generar el manual, se envían a OpenRouter observaciones resumidas de la actividad, avisos de validez y
             estrategias. No se envían el código ni los toques individuales. OpenRouter procesa esa solicitud según sus
             propias condiciones; no ingreses nombres ni otros datos que identifiquen directamente a la niña o al niño.
+          </p>
+          <p className="mt-2">
+            Si describes una situación del aula o de la casa, ese texto también se envía a OpenRouter para adaptar los
+            ejemplos de las estrategias. No escribas nombres ni diagnósticos. Los números se quitan automáticamente.
           </p>
           <p className="mt-2">
             La app no conserva constancia de quién aceptó. Si la escuela necesita guardar un consentimiento, debe
@@ -81,6 +97,55 @@ export default function Start({ onBegin, onDemo }: Props) {
           nombre, iniciales, fecha de nacimiento ni una matrícula que identifique directamente. Si la escuela necesita
           relacionar el código con un alumno, conserva esa equivalencia por separado y con acceso restringido.
         </p>
+        <fieldset className="mt-4 flex flex-col gap-3">
+          <legend className="mb-1 text-lg font-medium">Para adaptar los ejemplos del manual (opcional)</legend>
+          {(
+            [
+              ["classroom", "Una situación del aula en la que quieres ayudar", "salida al recreo, copiar del pizarrón"],
+              ["home", "Una situación de la casa en la que quieres ayudar", "hora de la cena, arreglarse para dormir"],
+            ] as const
+          ).map(([field, label, example]) => (
+            <label key={field} className="flex flex-col gap-1 text-lg">
+              {label}
+              <input
+                value={situations[field]}
+                onChange={(event) => setSituations({ ...situations, [field]: cleanContext(event.target.value) })}
+                maxLength={CONTEXT_MAX}
+                autoComplete="off"
+                placeholder={example}
+                className="rounded-2xl border-2 border-line bg-white px-4 py-3 text-lg outline-none focus:border-accent"
+              />
+              {suspicious(situations[field]) && (
+                <span className="text-base text-muted">
+                  Esa situación no se usará. Descríbela con otras palabras, sin nombres, diagnósticos ni instrucciones.
+                </span>
+              )}
+            </label>
+          ))}
+        </fieldset>
+        <fieldset className="mt-4 flex flex-col gap-3">
+          <legend className="mb-1 text-lg font-medium">Marca lo que aplique (es opcional)</legend>
+          {RED_FLAG_QUESTIONS.map((question, i) => (
+            <label key={question} className="flex items-start gap-3 text-lg">
+              <input
+                type="checkbox"
+                className="mt-1 h-6 w-6 shrink-0"
+                checked={redFlags[i]}
+                onChange={(event) => setRedFlags(redFlags.map((value, j) => (j === i ? event.target.checked : value)))}
+              />
+              {question}
+            </label>
+          ))}
+          <label className="flex items-start gap-3 text-lg">
+            <input
+              type="checkbox"
+              className="mt-1 h-6 w-6 shrink-0"
+              checked={otherLanguage}
+              onChange={(event) => setOtherLanguage(event.target.checked)}
+            />
+            En casa se habla otro idioma, o está aprendiendo español
+          </label>
+        </fieldset>
         <button type="submit" disabled={!valid || !consent} className="btn-primary mt-2">
           Comenzar
         </button>

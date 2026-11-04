@@ -1,17 +1,27 @@
-import type { Descriptors } from "./profile";
+import type { ErrorCode } from "./profile";
 
-export type Trigger = Partial<
-  Pick<Descriptors, "span" | "orderHandling" | "negationHandling" | "startsEarly" | "asksForRepeats" | "pace">
->;
+export type StrategyCode = ErrorCode | "F1";
+
+export type Evidence = "direct" | "indirect" | "theoretical" | "none";
 
 export interface Strategy {
   id: string;
   title: string;
   setting: "classroom" | "home" | "both";
-  trigger: Trigger;
+  codes: StrategyCode[];
   rationale: string;
+  whenToUse: string;
   script: string[];
+  example: { classroom: string; home: string };
+  ifItDoesNotWork: string;
+  commonMistakes: string;
   watchFor: string;
+  evidence: Evidence;
+  evidenceNote: string;
+  source: string;
+  author: string | null;
+  approvedOn: string | null;
+  version: number;
 }
 
 export interface ManualVersion {
@@ -28,5 +38,7 @@ export interface ManualSections {
 export interface RailedManual {
   notices: string[];
   sections: ManualSections;
+  limits: string;
+  strategies: Strategy[];
   closing: string;
 }

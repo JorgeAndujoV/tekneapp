@@ -36,6 +36,9 @@ function session(results: TrialResult[]): Session {
     startedAt: "2026-11-02T10:00:00.000Z",
     vocabCheckPassed: true,
     results,
+    redFlag: false,
+    homeLanguageNotSpanish: false,
+    stoppedForDistress: false,
   };
 }
 
@@ -84,6 +87,27 @@ describe("computeProfile", () => {
     expect(profile.flags).toContain("priority_referral");
   });
 
+  it("names the most frequent answer code as dominant and breaks ties by severity", () => {
+    const stopped = ["t03", "t04"];
+    const wrongShape: Record<string, string[]> = { t05: ["y-c", "y-s"], t08: ["r-c", "b-s", "y-s"] };
+    const results = TRIALS.map((trial) => {
+      if (stopped.includes(trial.id)) return answer(trial.id, [expectedOf(trial.id)[0]]);
+      if (wrongShape[trial.id]) return answer(trial.id, wrongShape[trial.id]);
+      return correct(trial.id);
+    });
+    const { measures } = computeProfile(session(results), TRIALS);
+    expect(measures.codeCounts.E1).toBe(2);
+    expect(measures.codeCounts.E4).toBe(2);
+    expect(measures.dominantCode).toBe("E1");
+  });
+
+  it("names no dominant code when a pattern appears only once", () => {
+    const results = TRIALS.map((trial) =>
+      trial.id === "t05" ? answer("t05", ["y-c", "y-s"]) : correct(trial.id),
+    );
+    expect(computeProfile(session(results), TRIALS).measures.dominantCode).toBeNull();
+  });
+
   it("counts taps during the audio as a premature start without closing the window", () => {
     const early: Tap[] = [{ cardId: "r-c", t: -400 }];
     expect(isResponseComplete(early, ["r-c"])).toBe(false);
@@ -108,5 +132,66 @@ describe("computeProfile", () => {
 
     expect(profile.measures.accuracy.twoActions).toBe(1);
     expect(profile.measures.selfCorrections).toBe(2);
+  });
+});
+
+describe("computeProfile — referral flags", () => {
+  const allCorrect = () => TRIALS.map((trial) => correct(trial.id));
+  const withResults = (changes: Record<string, TrialResult>) =>
+    allCorrect().map((result) => changes[result.trialId] ?? result);
+
+  it("flags a red flag and a home language from what the adult marked", () => {
+    const marked = { ...session(allCorrect()), redFlag: true, homeLanguageNotSpanish: true };
+    const { flags } = computeProfile(marked, TRIALS);
+    expect(flags).toEqual(["red_flag", "home_language", "priority_referral"]);
+  });
+
+  it("flags a home language alone as a caution, not a priority referral", () => {
+    const { flags } = computeProfile({ ...session(allCorrect()), homeLanguageNotSpanish: true }, TRIALS);
+    expect(flags).toEqual(["home_language"]);
+  });
+
+  it("flags a session the adult stopped because the child was upset", () => {
+    const { flags } = computeProfile({ ...session(allCorrect().slice(0, 8)), stoppedForDistress: true }, TRIALS);
+    expect(flags).toContain("distress_stop");
+    expect(flags).toContain("priority_referral");
+  });
+
+  it("flags a session where most trials are wrong, including a simple one", () => {
+    const results = TRIALS.map((trial) => (trial.id === "t03" || trial.id === "t04" ? correct(trial.id) : wrong(trial.id)));
+    const { flags } = computeProfile(session(results), TRIALS);
+    expect(flags).toContain("most_failed");
+  });
+
+  it("flags replays on most trials", () => {
+    const changes = Object.fromEntries(
+      TRIALS.slice(0, 7).map((trial) => [trial.id, { ...correct(trial.id), replayed: true }]),
+    );
+    expect(computeProfile(session(withResults(changes)), TRIALS).flags).toContain("replays_often");
+  });
+
+  it("does not flag replays on a few trials", () => {
+    const changes = Object.fromEntries(
+      TRIALS.slice(0, 3).map((trial) => [trial.id, { ...correct(trial.id), replayed: true }]),
+    );
+    expect(computeProfile(session(withResults(changes)), TRIALS).flags).toEqual([]);
+  });
+
+  it("flags a child who does not respond to many trials", () => {
+    const changes = Object.fromEntries(TRIALS.slice(4, 8).map((trial) => [trial.id, answer(trial.id, [])]));
+    expect(computeProfile(session(withResults(changes)), TRIALS).flags).toContain("many_no_response");
+  });
+});
+
+describe("computeProfile — replays", () => {
+  it("counts replayed trials that ended correct apart from those that did not", () => {
+    const results = TRIALS.map((trial) => {
+      if (["t03", "t04", "t05"].includes(trial.id)) return { ...correct(trial.id), replayed: true };
+      if (trial.id === "t08") return { ...wrong(trial.id), replayed: true };
+      return correct(trial.id);
+    });
+    const { measures } = computeProfile(session(results), TRIALS);
+    expect(measures.replaysRequested).toBe(4);
+    expect(measures.replaysThenCorrect).toBe(3);
   });
 });
