@@ -24,6 +24,7 @@ export default function Start({ onBegin, onDemo }: Props) {
   const [consent, setConsent] = useState(false);
   const [privacyRead, setPrivacyRead] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
+  const [step, setStep] = useState(1);
   const [situations, setSituations] = useState<Context>(NO_CONTEXT);
   const valid = isValidChildCode(code);
 
@@ -35,126 +36,181 @@ export default function Start({ onBegin, onDemo }: Props) {
         de apoyo.
       </p>
 
+      <div className="flex flex-col gap-2">
+        <p className="text-base font-medium text-muted">Paso {step} de 3</p>
+        <div className="flex gap-2">
+          {[1, 2, 3].map((number) => (
+            <div
+              key={number}
+              className={`h-2 flex-1 rounded-full ${number <= step ? "bg-accent" : "bg-line"}`}
+            />
+          ))}
+        </div>
+      </div>
+
       <form
         className="flex flex-col gap-3"
         onSubmit={(event) => {
           event.preventDefault();
-          if (valid && consent && privacyRead)
+          if (step === 3 && valid && consent && privacyRead)
             onBegin(code, { redFlag: redFlags.some(Boolean), homeLanguageNotSpanish: otherLanguage }, finalContext(situations));
         }}
       >
-        <section className="rounded-2xl border-2 border-line bg-white p-4 text-base leading-relaxed">
-          <h2 className="mb-3 text-lg font-semibold">Antes de comenzar</h2>
-          <ul className="list-disc space-y-2 pl-5">
-            <li>La participación es voluntaria y puede detenerse en cualquier momento.</li>
-            <li>La actividad no es una evaluación clínica ni proporciona diagnósticos.</li>
-            <li>La información de la sesión se mantiene temporalmente en esta página.</li>
-            <li>Para generar el manual, se envían observaciones resumidas y los textos opcionales al proveedor del modelo de lenguaje.</li>
-            <li>No ingreses nombres, diagnósticos ni datos que identifiquen a la niña o al niño.</li>
-          </ul>
-          <button
-            type="button"
-            className="mt-4 font-medium text-accent underline"
-            onClick={() => setShowPrivacy(true)}
-          >
-            Leer aviso completo de privacidad y consentimiento
-          </button>
-        </section>
+        {step === 1 && (
+          <>
+            <h2 className="text-xl font-semibold">Privacidad y consentimiento</h2>
+            <section className="rounded-2xl border-2 border-line bg-white p-4 text-base leading-relaxed">
+              <h2 className="mb-3 text-lg font-semibold">Antes de comenzar</h2>
+              <ul className="list-disc space-y-2 pl-5">
+                <li>La participación es voluntaria y puede detenerse en cualquier momento.</li>
+                <li>La actividad no es una evaluación clínica ni proporciona diagnósticos.</li>
+                <li>La información de la sesión se mantiene temporalmente en esta página.</li>
+                <li>Para generar el manual, se envían observaciones resumidas y los textos opcionales al proveedor del modelo de lenguaje.</li>
+                <li>No ingreses nombres, diagnósticos ni datos que identifiquen a la niña o al niño.</li>
+              </ul>
+              <button
+                type="button"
+                className="mt-4 font-medium text-accent underline"
+                onClick={() => setShowPrivacy(true)}
+              >
+                Leer aviso completo de privacidad y consentimiento
+              </button>
+            </section>
 
-        <label className="flex items-start gap-3 rounded-xl py-2 text-base leading-relaxed">
-          <input
-            type="checkbox"
-            checked={privacyRead}
-            onChange={(event) => setPrivacyRead(event.target.checked)}
-            className="mt-1 h-5 w-5 shrink-0 accent-accent"
-          />
-          <span>Confirmo que he leído y comprendido el aviso de privacidad.</span>
-        </label>
-
-        <label className="flex items-start gap-3 rounded-xl py-2 text-base leading-relaxed">
-          <input
-            type="checkbox"
-            checked={consent}
-            onChange={(event) => setConsent(event.target.checked)}
-            className="mt-1 h-5 w-5 shrink-0 accent-accent"
-          />
-          <span>
-            Confirmo que soy madre, padre o tutor, o personal escolar autorizado con permiso previo de la familia; que
-            expliqué la actividad de forma apropiada y que la niña o el niño acepta participar.
-          </span>
-        </label>
-
-        <label htmlFor="code" className="text-lg font-medium">
-          Código de sesión (no nombre)
-        </label>
-        <input
-          id="code"
-          value={code}
-          onChange={(event) => setCode(normalizeChildCode(event.target.value))}
-          maxLength={CHILD_CODE_MAX_LENGTH}
-          autoComplete="off"
-          autoCapitalize="characters"
-          spellCheck={false}
-          placeholder="ESC-3B-014"
-          className="rounded-2xl border-2 border-line bg-white px-4 py-4 text-2xl tracking-wide outline-none focus:border-accent"
-        />
-        <p className="text-base text-muted">
-          Usa un código de sesión de 3 a 32 letras o números, con guiones o guiones bajos y al menos un número. No uses
-          nombre, iniciales, fecha de nacimiento ni una matrícula que identifique directamente. Si la escuela necesita
-          relacionar el código con un alumno, conserva esa equivalencia por separado y con acceso restringido.
-        </p>
-        <fieldset className="mt-4 flex flex-col gap-3">
-          <legend className="mb-1 text-lg font-medium">Para adaptar los ejemplos del manual (opcional)</legend>
-          {(
-            [
-              ["classroom", "Una situación del aula en la que quieres ayudar", "salida al recreo, copiar del pizarrón"],
-              ["home", "Una situación de la casa en la que quieres ayudar", "hora de la cena, arreglarse para dormir"],
-            ] as const
-          ).map(([field, label, example]) => (
-            <label key={field} className="flex flex-col gap-1 text-lg">
-              {label}
-              <input
-                value={situations[field]}
-                onChange={(event) => setSituations({ ...situations, [field]: cleanContext(event.target.value) })}
-                maxLength={CONTEXT_MAX}
-                autoComplete="off"
-                placeholder={example}
-                className="rounded-2xl border-2 border-line bg-white px-4 py-3 text-lg outline-none focus:border-accent"
-              />
-              {suspicious(situations[field]) && (
-                <span className="text-base text-muted">
-                  Esa situación no se usará. Descríbela con otras palabras, sin nombres, diagnósticos ni instrucciones.
-                </span>
-              )}
-            </label>
-          ))}
-        </fieldset>
-        <fieldset className="mt-4 flex flex-col gap-3">
-          <legend className="mb-1 text-lg font-medium">Marca lo que aplique (es opcional)</legend>
-          {RED_FLAG_QUESTIONS.map((question, i) => (
-            <label key={question} className="flex items-start gap-3 text-lg">
+            <label className="flex items-start gap-3 rounded-xl py-2 text-base leading-relaxed">
               <input
                 type="checkbox"
-                className="mt-1 h-6 w-6 shrink-0"
-                checked={redFlags[i]}
-                onChange={(event) => setRedFlags(redFlags.map((value, j) => (j === i ? event.target.checked : value)))}
+                checked={privacyRead}
+                onChange={(event) => setPrivacyRead(event.target.checked)}
+                className="mt-1 h-5 w-5 shrink-0 accent-accent"
               />
-              {question}
+              <span>Confirmo que he leído y comprendido el aviso de privacidad.</span>
             </label>
-          ))}
-          <label className="flex items-start gap-3 text-lg">
+
+            <label className="flex items-start gap-3 rounded-xl py-2 text-base leading-relaxed">
+              <input
+                type="checkbox"
+                checked={consent}
+                onChange={(event) => setConsent(event.target.checked)}
+                className="mt-1 h-5 w-5 shrink-0 accent-accent"
+              />
+              <span>
+                Confirmo que soy madre, padre o tutor, o personal escolar autorizado con permiso previo de la familia; que
+                expliqué la actividad de forma apropiada y que la niña o el niño acepta participar.
+              </span>
+            </label>
+
+            <button
+              type="button"
+              disabled={!consent || !privacyRead}
+              className="btn-primary mt-2"
+              onClick={() => setStep(2)}
+            >
+              Siguiente
+            </button>
+          </>
+        )}
+
+        {step === 2 && (
+          <>
+            <h2 className="text-xl font-semibold">Datos de la sesión</h2>
+            <label htmlFor="code" className="text-lg font-medium">
+              Código de sesión (no nombre)
+            </label>
             <input
-              type="checkbox"
-              className="mt-1 h-6 w-6 shrink-0"
-              checked={otherLanguage}
-              onChange={(event) => setOtherLanguage(event.target.checked)}
+              id="code"
+              value={code}
+              onChange={(event) => setCode(normalizeChildCode(event.target.value))}
+              maxLength={CHILD_CODE_MAX_LENGTH}
+              autoComplete="off"
+              autoCapitalize="characters"
+              spellCheck={false}
+              placeholder="ESC-3B-014"
+              className="rounded-2xl border-2 border-line bg-white px-4 py-4 text-2xl tracking-wide outline-none focus:border-accent"
             />
-            En casa se habla otro idioma, o está aprendiendo español
-          </label>
-        </fieldset>
-        <button type="submit" disabled={!valid || !consent || !privacyRead} className="btn-primary mt-2">
-          Comenzar
-        </button>
+            <p className="text-base text-muted">
+              Usa un código de sesión de 3 a 32 letras o números, con guiones o guiones bajos y al menos un número. No uses
+              nombre, iniciales, fecha de nacimiento ni una matrícula que identifique directamente. Si la escuela necesita
+              relacionar el código con un alumno, conserva esa equivalencia por separado y con acceso restringido.
+            </p>
+
+            <div className="mt-2 flex gap-3">
+              <button type="button" className="btn-secondary flex-1" onClick={() => setStep(1)}>
+                Atrás
+              </button>
+              <button type="button" disabled={!valid} className="btn-primary flex-1" onClick={() => setStep(3)}>
+                Siguiente
+              </button>
+            </div>
+          </>
+        )}
+
+        {step === 3 && (
+          <>
+            <h2 className="text-xl font-semibold">Personalizar el manual</h2>
+            <p className="text-base text-muted">
+              Esta información es opcional. Puedes dejar los campos vacíos.
+            </p>
+            <fieldset className="mt-4 flex flex-col gap-3">
+              <legend className="mb-1 text-lg font-medium">Para adaptar los ejemplos del manual (opcional)</legend>
+              {(
+                [
+                  ["classroom", "Una situación del aula en la que quieres ayudar", "salida al recreo, copiar del pizarrón"],
+                  ["home", "Una situación de la casa en la que quieres ayudar", "hora de la cena, arreglarse para dormir"],
+                ] as const
+              ).map(([field, label, example]) => (
+                <label key={field} className="flex flex-col gap-1 text-lg">
+                  {label}
+                  <input
+                    value={situations[field]}
+                    onChange={(event) => setSituations({ ...situations, [field]: cleanContext(event.target.value) })}
+                    maxLength={CONTEXT_MAX}
+                    autoComplete="off"
+                    placeholder={example}
+                    className="rounded-2xl border-2 border-line bg-white px-4 py-3 text-lg outline-none focus:border-accent"
+                  />
+                  {suspicious(situations[field]) && (
+                    <span className="text-base text-muted">
+                      Esa situación no se usará. Descríbela con otras palabras, sin nombres, diagnósticos ni instrucciones.
+                    </span>
+                  )}
+                </label>
+              ))}
+            </fieldset>
+            <fieldset className="mt-4 flex flex-col gap-3">
+              <legend className="mb-1 text-lg font-medium">Marca lo que aplique (es opcional)</legend>
+              {RED_FLAG_QUESTIONS.map((question, i) => (
+                <label key={question} className="flex items-start gap-3 text-lg">
+                  <input
+                    type="checkbox"
+                    className="mt-1 h-6 w-6 shrink-0"
+                    checked={redFlags[i]}
+                    onChange={(event) => setRedFlags(redFlags.map((value, j) => (j === i ? event.target.checked : value)))}
+                  />
+                  {question}
+                </label>
+              ))}
+              <label className="flex items-start gap-3 text-lg">
+                <input
+                  type="checkbox"
+                  className="mt-1 h-6 w-6 shrink-0"
+                  checked={otherLanguage}
+                  onChange={(event) => setOtherLanguage(event.target.checked)}
+                />
+                En casa se habla otro idioma, o está aprendiendo español
+              </label>
+            </fieldset>
+
+            <div className="mt-2 flex gap-3">
+              <button type="button" className="btn-secondary flex-1" onClick={() => setStep(2)}>
+                Atrás
+              </button>
+              <button type="submit" disabled={!valid || !consent || !privacyRead} className="btn-primary flex-1">
+                Comenzar
+              </button>
+            </div>
+          </>
+        )}
       </form>
 
       <div className="mt-auto flex flex-col items-start gap-3">
@@ -225,4 +281,3 @@ export default function Start({ onBegin, onDemo }: Props) {
     </main>
   );
 }
-
