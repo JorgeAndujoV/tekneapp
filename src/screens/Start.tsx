@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { SEEDS, type Seed } from "../data/seeds";
 import type { Intake } from "../types/profile";
-import { cleanContext, CONTEXT_MAX, finalContext, NO_CONTEXT, type Context } from "../generation/context";
+import { cleanContext, CONTEXT_MAX, finalContext, NO_CONTEXT, suspicious, type Context } from "../generation/context";
 import { CHILD_CODE_MAX_LENGTH, isValidChildCode, normalizeChildCode } from "../data/childCode";
 
 const RED_FLAG_QUESTIONS = [
@@ -115,6 +115,11 @@ export default function Start({ onBegin, onDemo }: Props) {
                 placeholder={example}
                 className="rounded-2xl border-2 border-line bg-white px-4 py-3 text-lg outline-none focus:border-accent"
               />
+              {suspicious(situations[field]) && (
+                <span className="text-base text-muted">
+                  Esa situación no se usará. Descríbela con otras palabras, sin nombres, diagnósticos ni instrucciones.
+                </span>
+              )}
             </label>
           ))}
         </fieldset>

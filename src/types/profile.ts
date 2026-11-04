@@ -141,6 +141,7 @@ export interface Measures {
 
   codeCounts: Record<ErrorCode, number>;
   dominantCode: ErrorCode | null;
+  confusedAttribute: WrongAttribute | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -156,6 +157,9 @@ export interface Descriptors {
   negationHandling: Holds;
   startsEarly: boolean;
   asksForRepeats: "never" | "sometimes" | "often";
+  mainPattern: ErrorCode | null;
+  otherPatterns: ErrorCode[];
+  mixesUp: WrongAttribute | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -258,6 +262,9 @@ export function describe(m: Measures): Descriptors {
     startsEarly: m.prematureStarts >= EARLY_START_TRIALS,
     asksForRepeats:
       m.replaysRequested === 0 ? "never" : replayShare(m) > REPLAYS_OFTEN_ABOVE ? "often" : "sometimes",
+    mainPattern: m.dominantCode,
+    otherPatterns: SEVERITY.filter((code) => code !== m.dominantCode && m.codeCounts[code] >= DOMINANT_MIN_TRIALS),
+    mixesUp: m.confusedAttribute,
   };
 }
 
@@ -308,6 +315,7 @@ export const FIXTURE_TYPICAL_WITH_SHORT_SPAN: Profile = {
     trialsCompleted: 12,
     codeCounts: { ...noCodes, E1: 2, E4: 2, E6: 2 },
     dominantCode: "E1",
+    confusedAttribute: null,
   },
   descriptors: {
     span: "two",
@@ -315,6 +323,9 @@ export const FIXTURE_TYPICAL_WITH_SHORT_SPAN: Profile = {
     negationHandling: "struggles",
     startsEarly: false,
     asksForRepeats: "sometimes",
+    mainPattern: "E1",
+    otherPatterns: ["E4", "E6"],
+    mixesUp: null,
   },
   trialCodes: [],
   flags: [],
@@ -347,6 +358,7 @@ export const FIXTURE_SAME_SPAN_NO_MONITORING: Profile = {
     trialsCompleted: 12,
     codeCounts: { ...noCodes, E3: 2, E4: 2, E6: 2, E7: 5 },
     dominantCode: "E3",
+    confusedAttribute: null,
   },
   descriptors: {
     span: "two",
@@ -354,6 +366,9 @@ export const FIXTURE_SAME_SPAN_NO_MONITORING: Profile = {
     negationHandling: "struggles",
     startsEarly: true,
     asksForRepeats: "never",
+    mainPattern: "E3",
+    otherPatterns: ["E4", "E6"],
+    mixesUp: null,
   },
   trialCodes: [],
   flags: [],
@@ -380,6 +395,7 @@ export const FIXTURE_INSUFFICIENT: Profile = {
     trialsCompleted: 3,
     codeCounts: noCodes,
     dominantCode: null,
+    confusedAttribute: null,
   },
   descriptors: {
     span: "unknown",
@@ -387,6 +403,9 @@ export const FIXTURE_INSUFFICIENT: Profile = {
     negationHandling: "unknown",
     startsEarly: false,
     asksForRepeats: "sometimes",
+    mainPattern: null,
+    otherPatterns: [],
+    mixesUp: null,
   },
   trialCodes: [],
   flags: ["session_abandoned"],

@@ -142,7 +142,7 @@ describe("pipeline with the live model", () => {
           if (context[setting] === "") continue;
           for (const line of reply.toTry[setting].split("\n").filter((l) => l.trim() !== "")) {
             result.lines++;
-            const verdict = checkExampleLine(line, candidates);
+            const verdict = checkExampleLine(line, candidates, setting, [context.classroom, context.home].filter((note) => note !== ""));
             if (verdict.ok) {
               result.kept++;
               adapted.push({

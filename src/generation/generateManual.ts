@@ -2,9 +2,10 @@ import { promptView, REFERRAL_FIRST, type Profile } from "../types/profile";
 import type { ManualSections, RailedManual, Strategy } from "../types/manual";
 import { candidatesFor, matchStrategies, selectStrategies } from "./matchStrategies";
 import { withStrategies, type Examples } from "./strategyText";
-import { buildPrompt } from "./buildPrompt";
+import { buildPrompt, describeProfile } from "./buildPrompt";
 import { applyRails, survivesRails } from "./applyRails";
 import { finalContext, hasContext, NO_CONTEXT, type Context } from "./context";
+import { copiesNote, keepsFrame } from "./copyGuard";
 
 const MAX_EXAMPLE_LENGTH = 240;
 
@@ -112,9 +113,15 @@ export function parseReply(text: string): Reply {
 
 export type ExampleVerdict =
   | { ok: true; strategy: Strategy; text: string }
-  | { ok: false; reason: "format" | "unknown" | "long" | "digit" | "rails" };
+  | { ok: false; reason: "format" | "unknown" | "long" | "digit" | "rails" | "copy" | "far" };
 
-export function checkExampleLine(line: string, candidates: Strategy[]): ExampleVerdict {
+type Setting = "classroom" | "home";
+
+const OBSERVED_COPY_RUN = 3;
+const EXAMPLE_COPY_RUN = 6;
+const FRAME_SHARE = 0.3;
+
+export function checkExampleLine(line: string, candidates: Strategy[], setting: Setting, notes: string[]): ExampleVerdict {
   const match = line.match(/^\s*-?\s*([A-Z])\s*:\s*(.+)$/);
   if (!match) return { ok: false, reason: "format" };
   const strategy = candidates[match[1].charCodeAt(0) - 65];
@@ -123,17 +130,30 @@ export function checkExampleLine(line: string, candidates: Strategy[]): ExampleV
   if (text.length > MAX_EXAMPLE_LENGTH) return { ok: false, reason: "long" };
   if (/\d/.test(text)) return { ok: false, reason: "digit" };
   if (!survivesRails(text)) return { ok: false, reason: "rails" };
+  if (notes.some((note) => copiesNote(text, note, EXAMPLE_COPY_RUN))) return { ok: false, reason: "copy" };
+  if (!keepsFrame(strategy.example[setting], text, FRAME_SHARE)) return { ok: false, reason: "far" };
   return { ok: true, strategy, text };
 }
 
-export function adaptedExamples(toTry: string, strategies: Strategy[], hasSituation: boolean): Record<string, string> {
+export function adaptedExamples(
+  toTry: string,
+  strategies: Strategy[],
+  setting: Setting,
+  context: Context,
+): Record<string, string> {
   const found: Record<string, string> = {};
-  if (!hasSituation) return found;
+  if (context[setting] === "") return found;
+  const notes = [context.classroom, context.home].filter((note) => note !== "");
   for (const line of toTry.split("\n")) {
-    const verdict = checkExampleLine(line, strategies);
+    const verdict = checkExampleLine(line, strategies, setting, notes);
     if (verdict.ok) found[verdict.strategy.id] = verdict.text;
   }
   return found;
+}
+
+export function safeObserved(text: string, notes: string[], profile: Profile): string {
+  if (!notes.some((note) => copiesNote(text, note, OBSERVED_COPY_RUN))) return text;
+  return describeProfile(promptView(profile).descriptors).slice(0, 5).join(" ");
 }
 
 export function chosenStrategies(watchFor: string, candidates: Strategy[]): Strategy[] {
@@ -170,13 +190,18 @@ export async function generateManual(profile: Profile, situations: Context = NO_
 
   const reply = parseReply(data.text);
   const examples: Examples = {
-    classroom: adaptedExamples(reply.toTry.classroom, candidates, context.classroom !== ""),
-    home: adaptedExamples(reply.toTry.home, candidates, context.home !== ""),
+    classroom: adaptedExamples(reply.toTry.classroom, candidates, "classroom", context),
+    home: adaptedExamples(reply.toTry.home, candidates, "home", context),
+  };
+  const notes = [context.classroom, context.home].filter((note) => note !== "");
+  const observed = {
+    classroom: safeObserved(reply.observed.classroom, notes, profile),
+    home: safeObserved(reply.observed.home, notes, profile),
   };
   const shown = hasContext(context)
     ? selectStrategies(profile, chosenStrategies(reply.watchFor.classroom || reply.watchFor.home, candidates))
     : matched;
-  return applyRails(withStrategies(reply.observed, shown, examples), profile.flags, shown);
+  return applyRails(withStrategies(observed, shown, examples), profile.flags, shown);
 }
 
 export function strategiesFor(profile: Profile): Strategy[] {

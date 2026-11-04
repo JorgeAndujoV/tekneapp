@@ -117,6 +117,13 @@ export function codeTrial(result: TrialResult, spec: TrialSpec, previous?: Trial
   return coded;
 }
 
+function confusedAttribute(trialCodes: TrialCodes[]): WrongAttribute | null {
+  const counts: Partial<Record<WrongAttribute, number>> = {};
+  for (const trial of trialCodes) if (trial.wrongAttribute) counts[trial.wrongAttribute] = (counts[trial.wrongAttribute] ?? 0) + 1;
+  const [best] = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  return best && best[1] >= DOMINANT_MIN_TRIALS ? (best[0] as WrongAttribute) : null;
+}
+
 function dominantCode(counts: Record<ErrorCode, number>): ErrorCode | null {
   return SEVERITY.reduce<ErrorCode | null>(
     (best, code) => (counts[code] >= DOMINANT_MIN_TRIALS && (best === null || counts[code] > counts[best]) ? code : best),
@@ -193,6 +200,7 @@ export function computeProfile(session: Session, trials: TrialSpec[]): Profile {
     trialsCompleted: scored.filter(({ result }) => !result.abandoned).length,
     codeCounts,
     dominantCode: dominantCode(codeCounts),
+    confusedAttribute: confusedAttribute(trialCodes),
   };
 
   const baseline = scored.filter((s) => s.spec.dimension === "baseline");
