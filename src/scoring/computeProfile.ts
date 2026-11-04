@@ -182,6 +182,7 @@ export function computeProfile(session: Session, trials: TrialSpec[]): Profile {
     prematureStarts: codeCounts.E7,
     selfCorrections: scored.reduce((sum, { result }) => sum + (result.selfCorrections ?? 0), 0),
     replaysRequested: scored.filter(({ result }) => result.replayed).length,
+    replaysThenCorrect: scored.filter(({ result, outcome }) => result.replayed && outcome === "correct").length,
     trialsAttempted: scored.filter(({ result }) => result.taps.some((tap) => tap.cardId !== null)).length,
     trialsCompleted: scored.filter(({ result }) => !result.abandoned).length,
     codeCounts,

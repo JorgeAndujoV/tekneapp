@@ -182,3 +182,16 @@ describe("computeProfile — referral flags", () => {
     expect(computeProfile(session(withResults(changes)), TRIALS).flags).toContain("many_no_response");
   });
 });
+
+describe("computeProfile — replays", () => {
+  it("counts replayed trials that ended correct apart from those that did not", () => {
+    const results = TRIALS.map((trial) => {
+      if (["t03", "t04", "t05"].includes(trial.id)) return { ...correct(trial.id), replayed: true };
+      if (trial.id === "t08") return { ...wrong(trial.id), replayed: true };
+      return correct(trial.id);
+    });
+    const { measures } = computeProfile(session(results), TRIALS);
+    expect(measures.replaysRequested).toBe(4);
+    expect(measures.replaysThenCorrect).toBe(3);
+  });
+});

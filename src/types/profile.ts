@@ -126,6 +126,7 @@ export interface Measures {
   prematureStarts: number; // taps before audio ended
   selfCorrections: number; // explicit deselections of previously selected cards
   replaysRequested: number;
+  replaysThenCorrect: number;
 
   trialsAttempted: number;
   trialsCompleted: number;
@@ -288,6 +289,7 @@ export const FIXTURE_TYPICAL_WITH_SHORT_SPAN: Profile = {
     prematureStarts: 0,
     selfCorrections: 0,
     replaysRequested: 3,
+    replaysThenCorrect: 0,
     trialsAttempted: 12,
     trialsCompleted: 12,
     codeCounts: { ...noCodes, E1: 2, E4: 2, E6: 2 },
@@ -326,6 +328,7 @@ export const FIXTURE_SAME_SPAN_NO_MONITORING: Profile = {
     prematureStarts: 5,
     selfCorrections: 0,
     replaysRequested: 0,
+    replaysThenCorrect: 0,
     trialsAttempted: 12,
     trialsCompleted: 12,
     codeCounts: { ...noCodes, E3: 2, E4: 2, E6: 2, E7: 5 },
@@ -358,6 +361,7 @@ export const FIXTURE_INSUFFICIENT: Profile = {
     prematureStarts: 0,
     selfCorrections: 0,
     replaysRequested: 1,
+    replaysThenCorrect: 0,
     trialsAttempted: 4,
     trialsCompleted: 3,
     codeCounts: noCodes,
