@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanObservation, finalObservation, OBSERVATION_EXAMPLES, OBSERVATION_MAX } from "./observations";
 import { buildPrompt } from "./buildPrompt";
 import { generateManual } from "./generateManual";
+import { candidatesFor, matchStrategies } from "./matchStrategies";
 import { FIXTURE_TYPICAL_WITH_SHORT_SPAN, promptView } from "../types/profile";
 
 const view = promptView(FIXTURE_TYPICAL_WITH_SHORT_SPAN);
@@ -82,5 +83,34 @@ describe("generateManual with an observation", () => {
     const manual = await generateManual(profile, undefined, "me miraba la boca");
     expect(spy).not.toHaveBeenCalled();
     expect(manual.strategies).toEqual([]);
+  });
+});
+
+describe("an observation personalizes the strategies and the examples", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  const candidates = candidatesFor(FIXTURE_TYPICAL_WITH_SHORT_SPAN);
+  const standard = matchStrategies(FIXTURE_TYPICAL_WITH_SHORT_SPAN);
+
+  it("offers the model the candidate strategies even when there is no situation", async () => {
+    const spy = stubModel("Siguió bien instrucciones.");
+    await generateManual(FIXTURE_TYPICAL_WITH_SHORT_SPAN, undefined, "se distraía con los ruidos del pasillo");
+    expect(promptSent(spy)).toContain(`Estrategia A: ${candidates[0].title}`);
+  });
+
+  it("lets the model choose the strategy and adapt its example for both versions from the observation alone", async () => {
+    const other = candidates.find((s) => !standard.includes(s) && s.codes.includes("E1"))!;
+    const letter = String.fromCharCode(65 + candidates.indexOf(other));
+    const body = {
+      classroom: { observed: "Siguió bien instrucciones.", toTry: `${letter}: ${other.example.classroom} Cerca de ti.`, watchFor: letter },
+      home: { observed: "Siguió bien instrucciones.", toTry: `${letter}: ${other.example.home} Cerca de ti.`, watchFor: letter },
+    };
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({ text: JSON.stringify(body) }), { status: 200 })));
+
+    const manual = await generateManual(FIXTURE_TYPICAL_WITH_SHORT_SPAN, undefined, "se distraía con los ruidos del pasillo");
+
+    expect(manual.strategies[0]).toBe(other);
+    expect(manual.sections.classroom.toTry).toContain(`Ejemplo adaptado a tu situación: ${other.example.classroom} Cerca de ti.`);
+    expect(manual.sections.home.toTry).toContain(`Ejemplo adaptado a tu situación: ${other.example.home} Cerca de ti.`);
   });
 });

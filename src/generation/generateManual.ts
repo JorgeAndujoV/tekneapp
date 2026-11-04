@@ -141,9 +141,10 @@ export function adaptedExamples(
   strategies: Strategy[],
   setting: Setting,
   context: Context,
+  hasObservation = false,
 ): Record<string, string> {
   const found: Record<string, string> = {};
-  if (context[setting] === "") return found;
+  if (context[setting] === "" && !hasObservation) return found;
   const notes = [context.classroom, context.home].filter((note) => note !== "");
   for (const line of toTry.split("\n")) {
     const verdict = checkExampleLine(line, strategies, setting, notes);
@@ -174,8 +175,10 @@ export async function generateManual(
   if (matched.length === 0) return applyRails(INSUFFICIENT_SECTIONS, profile.flags);
 
   const context = finalContext(situations);
-  const candidates = hasContext(context) ? candidatesFor(profile) : matched;
-  const messages = buildPrompt(promptView(profile), candidates, context, finalObservation(observation));
+  const note = finalObservation(observation);
+  const personalize = hasContext(context) || note !== "";
+  const candidates = personalize ? candidatesFor(profile) : matched;
+  const messages = buildPrompt(promptView(profile), candidates, context, note);
 
   let response: Response;
   try {
@@ -195,15 +198,15 @@ export async function generateManual(
 
   const reply = parseReply(data.text);
   const examples: Examples = {
-    classroom: adaptedExamples(reply.toTry.classroom, candidates, "classroom", context),
-    home: adaptedExamples(reply.toTry.home, candidates, "home", context),
+    classroom: adaptedExamples(reply.toTry.classroom, candidates, "classroom", context, note !== ""),
+    home: adaptedExamples(reply.toTry.home, candidates, "home", context, note !== ""),
   };
   const notes = [context.classroom, context.home].filter((note) => note !== "");
   const observed = {
     classroom: safeObserved(reply.observed.classroom, notes, profile),
     home: safeObserved(reply.observed.home, notes, profile),
   };
-  const shown = hasContext(context)
+  const shown = personalize
     ? selectStrategies(profile, chosenStrategies(reply.watchFor.classroom || reply.watchFor.home, candidates))
     : matched;
   return applyRails(withStrategies(observed, shown, examples), profile.flags, shown);
