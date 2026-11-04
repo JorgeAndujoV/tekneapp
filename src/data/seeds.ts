@@ -73,20 +73,20 @@ export const SEEDS: Seed[] = [
       classroom: {
         observed: ASKER_OBSERVED,
         toTry: [
-          "- Una instrucción a la vez. Acércate, di su nombre y espera a que te mire. Da un solo paso: \"Saca tu cuaderno.\" Espera a que lo haga antes de decir lo siguiente. Cuando termine, da el siguiente paso: \"Ahora ábrelo donde está el separador.\"",
+          "- Muestra los pasos con objetos. Pon frente a ti los objetos en el orden en que se van a usar. Señala el primero y di: \"Primero, esto.\" Señala el siguiente y di: \"Después, esto.\" Pide: \"Ahora tú, en el mismo orden.\"",
           "- Reconoce cuando pide ayuda. Cuando pida que repitas, responde: \"Qué bueno que preguntaste.\" Repite la instrucción igual, sin agregar palabras. Luego di: \"Siempre que lo necesites, pregúntame.\"",
         ].join("\n"),
         watchFor:
-          "Termina cada paso sin que tengas que repetirlo. Pide que le repitan en el momento en que se pierde, no al final.",
+          "Mira los objetos para ubicarse sin que se lo indiques. Pide que le repitan en el momento en que se pierde, no al final.",
       },
       home: {
         observed: ASKER_OBSERVED,
         toTry: [
-          "- Una instrucción a la vez. Acércate, di su nombre y espera a que te mire. Da un solo paso: \"Lávate las manos.\" Espera a que lo haga antes de decir lo siguiente. Cuando termine, da el siguiente paso: \"Ahora siéntate a la mesa.\"",
+          "- Muestra los pasos con objetos. Pon sobre la mesa la ropa en el orden en que se va a poner. Señala la primera prenda y di: \"Primero, esto.\" Señala la siguiente y di: \"Después, esto.\" Pide: \"Ahora tú, en el mismo orden.\"",
           "- Reconoce cuando pide ayuda. Cuando pida que repitas, responde: \"Qué bueno que preguntaste.\" Repite la instrucción igual, sin agregar palabras. Luego di: \"Siempre que lo necesites, pregúntame.\"",
         ].join("\n"),
         watchFor:
-          "Termina cada paso sin que tengas que repetirlo. Pide que le repitan en el momento en que se pierde, no al final.",
+          "Mira los objetos para ubicarse sin que se lo indiques. Pide que le repitan en el momento en que se pierde, no al final.",
       },
     },
   },
@@ -98,22 +98,22 @@ export const SEEDS: Seed[] = [
       classroom: {
         observed: EARLY_OBSERVED,
         toTry: [
-          "- Di los pasos en el orden en que se hacen. En lugar de \"Antes de salir al recreo, guarda tu libro\", di: \"Guarda tu libro. Luego sal al recreo.\" Usa siempre \"primero\" y \"luego\". Si lo hace en otro orden, repite igual: \"Primero esto, luego aquello.\"",
-          "- Comprueba que se quedó con el paso. Da la instrucción una vez: \"Guarda los colores en la caja.\" Pregunta sin prisa: \"¿Qué vas a hacer?\" Si lo dice bien: \"Eso es, adelante.\" Si le falta algo, repite la instrucción con las mismas palabras.",
-          "- Di lo que sí, no lo que no. En lugar de \"No corras\", di: \"Camina.\" En lugar de \"No tomes la azul\", di: \"Toma la roja.\" Revisa las instrucciones que más usas y cambia las que empiezan con \"no\".",
+          "- Muestra primero cómo se hace. Ponte frente a la niña o el niño y haz los pasos despacio, diciendo cada uno: \"Primero saco el libro. Luego lo abro.\" Pide: \"Ahora tú.\" Espera a que haga los pasos sin ayudarle. Si se equivoca, vuelve a mostrarlo igual, sin regañar.",
+          "- Menos opciones y menos detalles. Deja sobre la mesa solo los materiales que se van a usar. Nombra el objeto con un solo detalle: \"el lápiz\", no \"el lápiz azul de la caja de arriba\". Señala el objeto mientras lo nombras. Agrega un detalle más solo cuando ya acierta con lo anterior.",
+          "- Un lugar tranquilo y de frente. Busca un lugar y un momento con poco ruido: cierra la puerta del salón. Ponte frente a la niña o el niño, a su altura, antes de hablar. Da la instrucción con voz tranquila. Si hay ruido que no puedes quitar, acércate y habla más cerca en lugar de subir la voz.",
         ].join("\n"),
         watchFor:
-          "Hace los pasos en el orden correcto sin que tengas que detenerle. Puede decir la instrucción con sus propias palabras antes de empezar, y responde a la primera, sin quedarse en lo que no debía hacer.",
+          "Hace los pasos en el orden en que los mostraste. Toma el objeto correcto sin que tengas que señalarlo otra vez, y responde a la primera instrucción sin que tengas que repetirla.",
       },
       home: {
         observed: EARLY_OBSERVED,
         toTry: [
-          "- Di los pasos en el orden en que se hacen. En lugar de \"Antes de cenar, lávate las manos\", di: \"Lávate las manos. Luego siéntate a cenar.\" Usa siempre \"primero\" y \"luego\". Si lo hace en otro orden, repite igual: \"Primero esto, luego aquello.\"",
-          "- Comprueba que se quedó con el paso. Da la instrucción una vez: \"Guarda los juguetes en la caja.\" Pregunta sin prisa: \"¿Qué vas a hacer?\" Si lo dice bien: \"Eso es, adelante.\" Si le falta algo, repite la instrucción con las mismas palabras.",
-          "- Di lo que sí, no lo que no. En lugar de \"No grites\", di: \"Habla bajito.\" En lugar de \"No dejes tus zapatos ahí\", di: \"Pon tus zapatos en la entrada.\" Revisa las instrucciones que más usas y cambia las que empiezan con \"no\".",
+          "- Muestra primero cómo se hace. Ponte frente a la niña o el niño y haz los pasos despacio, diciendo cada uno: \"Primero me lavo las manos. Luego me siento.\" Pide: \"Ahora tú.\" Espera a que haga los pasos sin ayudarle. Si se equivoca, vuelve a mostrarlo igual, sin regañar.",
+          "- Menos opciones y menos detalles. Deja sobre la mesa solo lo que se va a usar para cenar. Nombra el objeto con un solo detalle: \"el vaso\", no \"el vaso azul del estante de abajo\". Señala el objeto mientras lo nombras. Agrega un detalle más solo cuando ya acierta con lo anterior.",
+          "- Un lugar tranquilo y de frente. Busca un lugar y un momento con poco ruido: apaga la televisión. Ponte frente a la niña o el niño, a su altura, antes de hablar. Da la instrucción con voz tranquila. Si hay ruido que no puedes quitar, acércate y habla más cerca en lugar de subir la voz.",
         ].join("\n"),
         watchFor:
-          "Hace los pasos en el orden correcto sin que tengas que detenerle. Puede decir la instrucción con sus propias palabras antes de empezar, y responde a la primera, sin quedarse en lo que no debía hacer.",
+          "Hace los pasos en el orden en que los mostraste. Toma el objeto correcto sin que tengas que señalarlo otra vez, y responde a la primera instrucción sin que tengas que repetirla.",
       },
     },
   },

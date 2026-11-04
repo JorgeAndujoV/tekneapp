@@ -70,6 +70,15 @@ describe("matchStrategies", () => {
     expect(asked.some(serves("F1"))).toBe(true);
   });
 
+  it("gives the same child the same picks and different children different ones", () => {
+    const picks = (sessionId: string) =>
+      matchStrategies({ ...profileWith({ E1: 3 }, "E1"), sessionId })
+        .map((s) => s.id)
+        .join();
+    expect(picks("child-a")).toBe(picks("child-a"));
+    expect(new Set(["a", "b", "c", "d", "e", "f"].map(picks)).size).toBeGreaterThan(1);
+  });
+
   it("only returns strategies that exist in the library", () => {
     const ids = STRATEGIES.map((s) => s.id);
     for (const s of matchStrategies(FIXTURE_SAME_SPAN_NO_MONITORING)) expect(ids).toContain(s.id);

@@ -22,20 +22,23 @@ const isUniversal = (strategy: Strategy) => strategy.codes.length === ERROR_CODE
 
 const covers = (strategy: Strategy, code: StrategyCode) => !isUniversal(strategy) && strategy.codes.includes(code);
 
+const variant = (sessionId: string) => [...sessionId].reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
+
 export function matchStrategies(profile: Profile, strategies: Strategy[] = STRATEGIES): Strategy[] {
   if (profile.reliability === "insufficient") return [];
 
   const targets = targetCodes(profile);
   if (targets.length === 0) return strategies.filter(isUniversal).slice(0, 1);
 
+  const offset = variant(profile.sessionId);
   const chosen: Strategy[] = [];
   for (const code of targets) {
     if (chosen.length === LIMIT) break;
     if (chosen.some((strategy) => covers(strategy, code))) continue;
-    const pick = strategies
-      .filter((strategy) => strategy.codes.includes(code) && !chosen.includes(strategy))
-      .sort((a, b) => a.codes.length - b.codes.length)[0];
-    if (pick) chosen.push(pick);
+    const eligible = strategies.filter((strategy) => strategy.codes.includes(code) && !chosen.includes(strategy));
+    const specific = eligible.filter((strategy) => !isUniversal(strategy));
+    const options = specific.length > 0 ? specific : eligible;
+    if (options.length > 0) chosen.push(options[offset % options.length]);
   }
   return chosen;
 }
