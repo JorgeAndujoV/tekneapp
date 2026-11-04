@@ -120,12 +120,12 @@ export default function TrialRunner({ id, audioFile, expected, isLast, onDone }:
   return (
     <>
       <TapSurface onTap={handleTap} selectedIds={selectedIds} />
-      <div className="flex h-24 shrink-0 items-center justify-center gap-3 px-4 pb-[env(safe-area-inset-bottom)]">
+      <div className="flex h-28 shrink-0 items-center justify-center gap-3 px-4 pb-[env(safe-area-inset-bottom)]">
         <button
           type="button"
           onClick={replay}
           disabled={!canReplay || listening}
-          className={`min-h-12 rounded-full border-2 border-line bg-white px-5 py-3 text-lg font-medium text-ink ${
+          className={`min-h-14 rounded-full border-2 border-line bg-white px-6 py-4 text-xl font-medium text-ink ${
             canReplay && !listening ? "" : "invisible"
           }`}
         >
@@ -135,7 +135,7 @@ export default function TrialRunner({ id, audioFile, expected, isLast, onDone }:
           type="button"
           onClick={finish}
           disabled={listening}
-          className="btn-primary min-h-12 px-6 py-3 text-lg"
+          className="btn-primary min-h-14 px-7 py-4 text-xl"
         >
           {isLast ? "Terminar" : "Siguiente"}
         </button>

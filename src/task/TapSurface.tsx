@@ -63,9 +63,20 @@ export default function TapSurface({ onTap, selectedIds }: Props) {
           );
         })}
       </div>
-      <p className="min-h-8 px-5 pb-2 text-center text-base text-muted" aria-live="polite">
-        {selectionLabels.length > 0 ? `Tu orden: ${selectionLabels.join(" → ")}` : "Toca las figuras en el orden que escuchaste."}
-      </p>
+      <div className="min-h-8 px-5 pb-2 text-center" aria-live="polite">
+        {selectionLabels.length > 0 ? (
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-wide text-muted">Tu orden</p>
+            <ul className="mt-1 text-xl font-semibold text-ink">
+              {selectionLabels.map((label) => (
+                <li key={label}>{label}</li>
+              ))}
+            </ul>
+          </div>
+        ) : (
+          <p className="text-lg text-muted">Toca las figuras en el orden que escuchaste.</p>
+        )}
+      </div>
     </div>
   );
 }
