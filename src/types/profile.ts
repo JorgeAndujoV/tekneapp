@@ -56,7 +56,7 @@ export interface TrialResult {
   taps: Tap[];
   /** Final ordered card selection when using the selectable-card interface. */
   finalSelection?: Tap[];
-  /** Number of times an already-selected card was explicitly deselected. */
+  /** Number of times the child changed the answer: a selected card deselected, or replaced by a new tap. */
   selfCorrections?: number;
   replayed: boolean;
   /** Response window closed without a complete sequence. */
@@ -99,7 +99,7 @@ export interface Measures {
 
   medianFirstTapMs: number | null;
   prematureStarts: number; // taps before audio ended
-  selfCorrections: number; // explicit deselections of previously selected cards
+  selfCorrections: number; // answer changes: deselections plus replacements of the last pick
   replaysRequested: number;
 
   trialsAttempted: number;

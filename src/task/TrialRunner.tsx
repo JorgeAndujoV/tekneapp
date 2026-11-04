@@ -23,7 +23,7 @@ export default function TrialRunner({ id, audioFile, expected, isLast, onDone }:
   const raw = useRef<{ cardId: string | null; at: number }[]>([]);
   const selectedRef = useRef<string[]>([]);
   const selectedAt = useRef(new Map<string, number>());
-  const deselections = useRef(0);
+  const answerChanges = useRef(0);
   const endedAt = useRef<number | null>(null);
   const isListening = useRef(true);
   const replayed = useRef(false);
@@ -50,7 +50,7 @@ export default function TrialRunner({ id, audioFile, expected, isLast, onDone }:
       trialId: id,
       taps: recorded,
       finalSelection,
-      selfCorrections: deselections.current,
+      selfCorrections: answerChanges.current,
       replayed: replayed.current,
       abandoned: finalSelection.length < expected.length,
     });
@@ -90,10 +90,14 @@ export default function TrialRunner({ id, audioFile, expected, isLast, onDone }:
     const next = [...selectedRef.current];
     if (next.includes(cardId)) {
       selectedAt.current.delete(cardId);
-      deselections.current++;
+      answerChanges.current++;
       next.splice(next.indexOf(cardId), 1);
     } else {
-      if (next.length >= Math.min(expected.length, MAX_TAPS)) return;
+      // when the answer is already full, a new card replaces the most recent pick instead of being ignored
+      if (next.length >= Math.min(expected.length, MAX_TAPS)) {
+        selectedAt.current.delete(next.pop()!);
+        answerChanges.current++;
+      }
       selectedAt.current.set(cardId, at);
       next.push(cardId);
     }
@@ -110,6 +114,11 @@ export default function TrialRunner({ id, audioFile, expected, isLast, onDone }:
     replayed.current = true;
     setCanReplay(false);
     window.clearTimeout(silenceTimer.current);
+    // hearing it again starts the answer from scratch, so the first try doesn't steer the second;
+    // the first try stays in the raw taps and is not counted as self-corrections
+    selectedRef.current = [];
+    selectedAt.current.clear();
+    setSelectedIds([]);
     isListening.current = true;
     setListening(true);
     playClip(audioFile).then(() => {
