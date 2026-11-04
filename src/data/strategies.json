@@ -149,48 +149,6 @@
       "version": 1
     },
     {
-      "id": "s10",
-      "title": "Pausa de orden: ¿qué va primero?",
-      "setting": "classroom",
-      "trigger": { "orderHandling": "struggles", "startsEarly": true },
-      "codes": ["E3", "E7"],
-      "rationale": "Antes de empezar, pregunta qué va primero.",
-      "script": [
-        "Antes de la instrucción, di: \"Escucha todo y luego te pregunto.\"",
-        "Da la instrucción: \"Guarda los colores y luego saca la regla.\"",
-        "Pregunta: \"¿Qué vas a hacer primero?\"",
-        "Cuando responda bien: \"Eso. Ahora sí, empieza.\""
-      ],
-      "watchFor": "Responde a la pregunta antes de moverse y, con el tiempo, ya no la necesita.",
-      "evidence": "theoretical",
-      "evidenceNote": "Adaptación de un paso de la guía para docentes (supervisar al niño pidiéndole que diga qué va a hacer); su uso con este patrón es propuesta del equipo y no se ha probado.",
-      "source": "Gathercole y Alloway 2007, p. 15",
-      "author": null,
-      "approvedOn": null,
-      "version": 1
-    },
-    {
-      "id": "s12",
-      "title": "Decirla antes de hacerla",
-      "setting": "home",
-      "trigger": { "startsEarly": true, "asksForRepeats": "never" },
-      "codes": ["E7"],
-      "rationale": "Pide que diga la instrucción antes de hacerla.",
-      "script": [
-        "Di: \"Te voy a pedir algo. Escucha hasta el final.\"",
-        "Da la instrucción: \"Lleva tu plato a la cocina y trae una servilleta.\"",
-        "Pide: \"Dímela antes de ir.\"",
-        "Si le falta un paso, repítelo con calma y pide que la diga otra vez."
-      ],
-      "watchFor": "Dice la instrucción completa sin que se lo pidas.",
-      "evidence": "theoretical",
-      "evidenceNote": "Adaptación de un paso de la guía para docentes (supervisar al niño pidiéndole que diga qué va a hacer); su uso con este patrón es propuesta del equipo y no se ha probado.",
-      "source": "Gathercole y Alloway 2007, p. 15",
-      "author": null,
-      "approvedOn": null,
-      "version": 1
-    },
-    {
       "id": "s13",
       "title": "Enseña a pedir que repitan",
       "setting": "both",
@@ -273,21 +231,106 @@
       "version": 1
     },
     {
-      "id": "s19",
-      "title": "Una condición a la vez",
-      "setting": "classroom",
-      "trigger": { "negationHandling": "struggles", "pace": "slow" },
-      "codes": ["E6"],
-      "rationale": "Separa una instrucción con condición en preguntas cortas, una a la vez.",
+      "id": "s21",
+      "title": "Acorta la instrucción",
+      "setting": "both",
+      "trigger": { "span": "one" },
+      "codes": ["E1", "E2"],
+      "rationale": "Reduce el número de pasos de cada instrucción.",
       "script": [
-        "En lugar de \"Si terminaste, guarda; si no, sigue\", pregunta: \"¿Terminaste?\"",
-        "Si dice que sí: \"Entonces guarda tu cuaderno.\"",
-        "Si dice que no: \"Entonces sigue trabajando.\""
+        "Antes de hablar, decide qué pasos hacen falta ahora y cuáles pueden esperar.",
+        "Di solo esos: en lugar de \"Saca tu cuaderno, ábrelo, busca la página y escribe la fecha\", di: \"Saca tu cuaderno y ábrelo.\"",
+        "Da los pasos que quedan cuando termine esa parte.",
+        "Usa pocas palabras y las mismas cada vez."
       ],
-      "watchFor": "Responde bien a cada pregunta y, con el tiempo, a la instrucción completa.",
+      "watchFor": "Hace todos los pasos de la instrucción corta sin que tengas que repetirla.",
       "evidence": "theoretical",
-      "evidenceNote": "Adaptación de la recomendación de la guía de usar oraciones simples y evitar cláusulas incrustadas; su uso para condiciones es propuesta del equipo y no se ha probado.",
+      "evidenceNote": "Guía publicada para docentes; no encontramos estudios que prueben esta estrategia por sí sola en niños de esta edad.",
       "source": "Gathercole y Alloway 2007, p. 16",
+      "author": null,
+      "approvedOn": null,
+      "version": 1
+    },
+    {
+      "id": "s22",
+      "title": "Usa frases sencillas",
+      "setting": "both",
+      "trigger": { "orderHandling": "struggles" },
+      "codes": ["E3", "E6"],
+      "rationale": "Usa frases cortas en voz activa, sin frases metidas dentro de otras.",
+      "script": [
+        "Di una sola cosa por frase, con el verbo al principio: \"Guarda tu libro.\"",
+        "Evita frases con \"que\" o \"cuando\" dentro: en lugar de \"El libro que está en tu mesa, guárdalo\", di: \"Guarda el libro de tu mesa.\"",
+        "Di primero lo que hay que hacer y después dónde: \"Pon tus colores en la caja.\"",
+        "Si hace falta repetir, usa la misma frase corta."
+      ],
+      "watchFor": "Hace lo que dice la frase corta sin que tengas que explicarla de nuevo.",
+      "evidence": "theoretical",
+      "evidenceNote": "Guía publicada para docentes; no encontramos estudios que prueben esta estrategia por sí sola en niños de esta edad.",
+      "source": "Gathercole y Alloway 2007, p. 16",
+      "author": null,
+      "approvedOn": null,
+      "version": 1
+    },
+    {
+      "id": "s23",
+      "title": "Muestra primero cómo se hace",
+      "setting": "both",
+      "trigger": { "orderHandling": "struggles" },
+      "codes": ["E3", "E4"],
+      "rationale": "Muestra los pasos con las manos antes de pedir que los haga.",
+      "script": [
+        "Ponte frente a la niña o el niño y haz los pasos despacio, diciendo cada uno: \"Primero saco el libro. Luego lo abro.\"",
+        "Pide: \"Ahora tú.\"",
+        "Espera a que haga los pasos sin ayudarle.",
+        "Si se equivoca, vuelve a mostrarlo igual, sin regañar."
+      ],
+      "watchFor": "Hace los pasos en el orden en que los mostraste.",
+      "evidence": "indirect",
+      "evidenceNote": "En el laboratorio, niños de 6 a 10 años recordaron mejor las instrucciones cuando vieron una demostración al escucharlas. No se ha probado en el aula. No se ha probado esta estrategia por sí sola.",
+      "source": "Waterman et al. 2017",
+      "author": null,
+      "approvedOn": null,
+      "version": 1
+    },
+    {
+      "id": "s24",
+      "title": "Menos opciones y menos detalles",
+      "setting": "both",
+      "trigger": { "negationHandling": "struggles" },
+      "codes": ["E4", "E6"],
+      "rationale": "Reduce los objetos posibles y los detalles que se piden en cada paso.",
+      "script": [
+        "Deja sobre la mesa solo los materiales que se van a usar.",
+        "Nombra el objeto con un solo detalle: \"el lápiz\", no \"el lápiz azul de la caja de arriba\".",
+        "Señala el objeto mientras lo nombras.",
+        "Agrega un detalle más solo cuando ya acierta con lo anterior."
+      ],
+      "watchFor": "Toma el objeto correcto sin que tengas que señalarlo otra vez.",
+      "evidence": "indirect",
+      "evidenceNote": "En el laboratorio, reducir las acciones posibles hizo que actuar la instrucción ayudara más al recuerdo. No encontramos fuente directa para reducir los detalles (color, tamaño). No se ha probado esta estrategia por sí sola.",
+      "source": "Pham et al. 2022; Waterman et al. 2017",
+      "author": null,
+      "approvedOn": null,
+      "version": 1
+    },
+    {
+      "id": "s25",
+      "title": "Un lugar tranquilo y de frente",
+      "setting": "both",
+      "trigger": {},
+      "codes": ["E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8"],
+      "rationale": "Da la instrucción en un lugar con poco ruido, de frente a la niña o al niño.",
+      "script": [
+        "Busca un lugar y un momento con poco ruido: apaga la televisión o cierra la puerta.",
+        "Ponte frente a la niña o el niño, a su altura, antes de hablar.",
+        "Da la instrucción con voz tranquila.",
+        "Si hay ruido que no puedes quitar, acércate y habla más cerca en lugar de subir la voz."
+      ],
+      "watchFor": "Responde a la primera instrucción sin que tengas que repetirla.",
+      "evidence": "indirect",
+      "evidenceNote": "El ruido y la reverberación afectan la escucha de niños pequeños más que la de adultos. No se ha probado esta estrategia por sí sola.",
+      "source": "Klatte et al. 2013; Shield y Dockrell 2008",
       "author": null,
       "approvedOn": null,
       "version": 1

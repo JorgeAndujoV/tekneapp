@@ -101,20 +101,20 @@ export const SEEDS: Seed[] = [
         observed: EARLY_OBSERVED,
         toTry: [
           "- Di los pasos en el orden en que se hacen. En lugar de \"Antes de salir al recreo, guarda tu libro\", di: \"Guarda tu libro. Luego sal al recreo.\" Usa siempre \"primero\" y \"luego\". Si lo hace en otro orden, repite igual: \"Primero esto, luego aquello.\"",
-          "- Pausa de orden: ¿qué va primero? Antes de la instrucción, di: \"Escucha todo y luego te pregunto.\" Da la instrucción: \"Guarda los colores y luego saca la regla.\" Pregunta: \"¿Qué vas a hacer primero?\" Cuando responda bien: \"Eso. Ahora sí, empieza.\"",
+          "- Usa frases sencillas. Di una sola cosa por frase, con el verbo al principio: \"Guarda tu libro.\" Evita frases con \"que\" o \"cuando\" dentro: en lugar de \"El libro que está en tu mesa, guárdalo\", di: \"Guarda el libro de tu mesa.\" Si hace falta repetir, usa la misma frase corta.",
           "- Enseña a pedir que repitan. Enséñale una frase: \"Si no te acuerdas, puedes decir: ¿me lo repites?\" Practíquenla en un momento tranquilo, como un juego. Cuando la use, responde con gusto: \"Claro, te lo repito.\" Repite la instrucción con las mismas palabras.",
         ].join("\n"),
         watchFor:
-          "Pide que le repitan cuando se pierde, sin que se lo sugieras. Responde a la pregunta de qué va primero antes de moverse, y hace los pasos en el orden correcto sin que tengas que detenerle.",
+          "Pide que le repitan cuando se pierde, sin que se lo sugieras. Hace lo que dice la frase corta sin que tengas que explicarla de nuevo, y hace los pasos en el orden correcto sin que tengas que detenerle.",
       },
       home: {
         observed: EARLY_OBSERVED,
         toTry: [
           "- Di los pasos en el orden en que se hacen. En lugar de \"Antes de cenar, lávate las manos\", di: \"Lávate las manos. Luego siéntate a cenar.\" Usa siempre \"primero\" y \"luego\". Si lo hace en otro orden, repite igual: \"Primero esto, luego aquello.\"",
-          "- Decirla antes de hacerla. Di: \"Te voy a pedir algo. Escucha hasta el final.\" Da la instrucción: \"Lleva tu plato a la cocina y trae una servilleta.\" Pide: \"Dímela antes de ir.\" Si le falta un paso, repítelo con calma y pide que la diga otra vez.",
+          "- Muestra primero cómo se hace. Ponte frente a la niña o el niño y haz los pasos despacio, diciendo cada uno: \"Primero me lavo las manos. Luego me siento.\" Pide: \"Ahora tú.\" Espera a que haga los pasos sin ayudarle. Si se equivoca, vuelve a mostrarlo igual, sin regañar.",
         ].join("\n"),
         watchFor:
-          "Dice la instrucción completa sin que se lo pidas, y hace los pasos en el orden correcto sin que tengas que detenerle.",
+          "Hace los pasos en el orden en que los mostraste y, con el tiempo, en el orden correcto sin que tengas que detenerle.",
       },
     },
   },

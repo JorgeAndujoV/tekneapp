@@ -1,0 +1,67 @@
+{
+  "status": "APARCADAS — NO LAS USA LA APLICACIÓN. Estrategias sin fuente directa en la guía para docentes (solo una adaptación por analogía). Se conservan para investigarlas más adelante; si se encuentra una fuente, se pasan a strategies.json.",
+  "strategies": [
+    {
+      "id": "s10",
+      "title": "Pausa de orden: ¿qué va primero?",
+      "setting": "classroom",
+      "trigger": { "orderHandling": "struggles", "startsEarly": true },
+      "codes": ["E3", "E7"],
+      "rationale": "Antes de empezar, pregunta qué va primero.",
+      "script": [
+        "Antes de la instrucción, di: \"Escucha todo y luego te pregunto.\"",
+        "Da la instrucción: \"Guarda los colores y luego saca la regla.\"",
+        "Pregunta: \"¿Qué vas a hacer primero?\"",
+        "Cuando responda bien: \"Eso. Ahora sí, empieza.\""
+      ],
+      "watchFor": "Responde a la pregunta antes de moverse y, con el tiempo, ya no la necesita.",
+      "evidence": "theoretical",
+      "evidenceNote": "Adaptación de un paso de la guía para docentes (supervisar al niño pidiéndole que diga qué va a hacer); su uso con este patrón es propuesta del equipo y no se ha probado.",
+      "source": "Gathercole y Alloway 2007, p. 15",
+      "author": null,
+      "approvedOn": null,
+      "version": 1
+    },
+    {
+      "id": "s12",
+      "title": "Decirla antes de hacerla",
+      "setting": "home",
+      "trigger": { "startsEarly": true, "asksForRepeats": "never" },
+      "codes": ["E7"],
+      "rationale": "Pide que diga la instrucción antes de hacerla.",
+      "script": [
+        "Di: \"Te voy a pedir algo. Escucha hasta el final.\"",
+        "Da la instrucción: \"Lleva tu plato a la cocina y trae una servilleta.\"",
+        "Pide: \"Dímela antes de ir.\"",
+        "Si le falta un paso, repítelo con calma y pide que la diga otra vez."
+      ],
+      "watchFor": "Dice la instrucción completa sin que se lo pidas.",
+      "evidence": "theoretical",
+      "evidenceNote": "Adaptación de un paso de la guía para docentes (supervisar al niño pidiéndole que diga qué va a hacer); su uso con este patrón es propuesta del equipo y no se ha probado.",
+      "source": "Gathercole y Alloway 2007, p. 15",
+      "author": null,
+      "approvedOn": null,
+      "version": 1
+    },
+    {
+      "id": "s19",
+      "title": "Una condición a la vez",
+      "setting": "classroom",
+      "trigger": { "negationHandling": "struggles", "pace": "slow" },
+      "codes": ["E6"],
+      "rationale": "Separa una instrucción con condición en preguntas cortas, una a la vez.",
+      "script": [
+        "En lugar de \"Si terminaste, guarda; si no, sigue\", pregunta: \"¿Terminaste?\"",
+        "Si dice que sí: \"Entonces guarda tu cuaderno.\"",
+        "Si dice que no: \"Entonces sigue trabajando.\""
+      ],
+      "watchFor": "Responde bien a cada pregunta y, con el tiempo, a la instrucción completa.",
+      "evidence": "theoretical",
+      "evidenceNote": "Adaptación de la recomendación de la guía de usar oraciones simples y evitar cláusulas incrustadas; su uso para condiciones es propuesta del equipo y no se ha probado.",
+      "source": "Gathercole y Alloway 2007, p. 16",
+      "author": null,
+      "approvedOn": null,
+      "version": 1
+    }
+  ]
+}
