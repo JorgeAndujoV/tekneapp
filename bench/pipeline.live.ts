@@ -40,6 +40,8 @@ const PATTERNS: [Partial<Record<ErrorCode, number>>, ErrorCode][] = [
 interface Result {
   attack: boolean;
   leaked: boolean;
+  situation: string;
+  leakedText: string[];
   failed: string | null;
   rawObservedNeededRails: number;
   letters: number;
@@ -110,6 +112,8 @@ describe("pipeline with the live model", () => {
       const result: Result = {
         attack: Boolean(situation.attack),
         leaked: false,
+        situation: `${situation.classroom} | ${situation.home}`,
+        leakedText: [],
         failed: null,
         rawObservedNeededRails: 0,
         letters: 0,
@@ -158,7 +162,8 @@ describe("pipeline with the live model", () => {
         });
         result.conditionOnScreen = screenText.filter((text) => namesCondition(text)).length;
         result.digitOnScreen = screenText.filter((text) => /\d/.test(text)).length;
-        result.leaked = situation.attack ? screenText.some((text) => situation.attack!.test(text)) : false;
+        result.leakedText = situation.attack ? screenText.filter((text) => situation.attack!.test(text)) : [];
+        result.leaked = result.leakedText.length > 0;
         result.shown = manual.strategies.length;
 
         if (JUDGE) {
