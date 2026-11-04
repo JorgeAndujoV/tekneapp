@@ -35,8 +35,8 @@ const askerSession = session("seed-a", "DEMO-A", [
   trial("t06", [["b-s", 2100], ["r-c", 3300]], { replayed: true }),
   trial("t07", [["r-s", 1700], ["y-c", 2800]]),
   trial("t08", [["r-c", 1900], ["b-s", 3100]], { replayed: true, abandoned: true }),
-  trial("t09", [["y-s", 1600], ["r-s", 2700], ["b-c", 3600]]),
-  trial("t10", [["b-c", 1400], ["r-s", 2400], ["y-s", 3500]]),
+  trial("t09", [["y-s", 1600], ["b-c", 2700]], { abandoned: true }),
+  trial("t10", [["b-c", 1400], ["r-s", 2400]], { abandoned: true }),
   trial("t11", [["r-s", 2200]]),
   trial("t12", [["r-s", 2000]]),
 ]);
@@ -73,22 +73,20 @@ export const SEEDS: Seed[] = [
       classroom: {
         observed: ASKER_OBSERVED,
         toTry: [
-          "- Invítale a decir la instrucción. Di: \"Toma tu lápiz y escribe tu nombre.\" Luego pregunta: \"¿Me la dices tú?\" Al escucharla: \"Muy bien, ya la tienes.\" Si pide que la repitas, repítela igual, sin agregar palabras.",
-          "- Tareas largas en tandas de dos. Anuncia: \"Son dos partes. Te digo la primera.\" Luego: \"Recorta la figura y pégala en la hoja.\" Al terminar: \"Ya va la segunda parte: colorea la figura y guarda las tijeras.\"",
-          "- Dos pasos y una pausa. Di: \"Saca tu libro y ábrelo.\" Espera a que termine y continúa: \"Ahora lee el título y levanta la mano.\"",
+          "- Una instrucción a la vez. Acércate, di su nombre y espera a que te mire. Da un solo paso: \"Saca tu cuaderno.\" Espera a que lo haga antes de decir lo siguiente. Cuando termine, da el siguiente paso: \"Ahora ábrelo donde está el separador.\"",
+          "- Reconoce cuando pide ayuda. Cuando pida que repitas, responde: \"Qué bueno que preguntaste.\" Repite la instrucción igual, sin agregar palabras. Luego di: \"Siempre que lo necesites, pregúntame.\"",
         ].join("\n"),
         watchFor:
-          "Dice la instrucción completa por su cuenta antes de empezar. En las tareas largas, espera o pregunta por la segunda parte en lugar de inventarla, y completa cada par de pasos sin quedarse a medias.",
+          "Termina cada paso sin que tengas que repetirlo. Pide que le repitan en el momento en que se pierde, no al final.",
       },
       home: {
         observed: ASKER_OBSERVED,
         toTry: [
-          "- Invítale a decir la instrucción. Di: \"Lávate las manos y siéntate a la mesa.\" Luego pregunta: \"¿Me la dices tú?\" Al escucharla: \"Muy bien, ya la tienes.\" Si pide que la repitas, repítela igual, sin agregar palabras.",
-          "- Tareas largas en tandas de dos. Anuncia: \"Son dos partes. Te digo la primera.\" Luego: \"Recoge tus juguetes y ponlos en la caja.\" Al terminar: \"Ya va la segunda parte: lleva la caja a tu cuarto y cierra la puerta.\"",
-          "- Dos pasos y una pausa. Di: \"Ponte la pijama y lávate los dientes.\" Espera a que termine y continúa: \"Ahora escoge un cuento y ven a la cama.\"",
+          "- Una instrucción a la vez. Acércate, di su nombre y espera a que te mire. Da un solo paso: \"Lávate las manos.\" Espera a que lo haga antes de decir lo siguiente. Cuando termine, da el siguiente paso: \"Ahora siéntate a la mesa.\"",
+          "- Reconoce cuando pide ayuda. Cuando pida que repitas, responde: \"Qué bueno que preguntaste.\" Repite la instrucción igual, sin agregar palabras. Luego di: \"Siempre que lo necesites, pregúntame.\"",
         ].join("\n"),
         watchFor:
-          "Dice la instrucción completa por su cuenta antes de empezar. En los encargos largos, espera o pregunta por la segunda parte en lugar de inventarla, y completa cada par de pasos sin quedarse a medias.",
+          "Termina cada paso sin que tengas que repetirlo. Pide que le repitan en el momento en que se pierde, no al final.",
       },
     },
   },
@@ -101,20 +99,21 @@ export const SEEDS: Seed[] = [
         observed: EARLY_OBSERVED,
         toTry: [
           "- Di los pasos en el orden en que se hacen. En lugar de \"Antes de salir al recreo, guarda tu libro\", di: \"Guarda tu libro. Luego sal al recreo.\" Usa siempre \"primero\" y \"luego\". Si lo hace en otro orden, repite igual: \"Primero esto, luego aquello.\"",
-          "- Usa frases sencillas. Di una sola cosa por frase, con el verbo al principio: \"Guarda tu libro.\" Evita frases con \"que\" o \"cuando\" dentro: en lugar de \"El libro que está en tu mesa, guárdalo\", di: \"Guarda el libro de tu mesa.\" Si hace falta repetir, usa la misma frase corta.",
-          "- Enseña a pedir que repitan. Enséñale una frase: \"Si no te acuerdas, puedes decir: ¿me lo repites?\" Practíquenla en un momento tranquilo, como un juego. Cuando la use, responde con gusto: \"Claro, te lo repito.\" Repite la instrucción con las mismas palabras.",
+          "- Comprueba que se quedó con el paso. Da la instrucción una vez: \"Guarda los colores en la caja.\" Pregunta sin prisa: \"¿Qué vas a hacer?\" Si lo dice bien: \"Eso es, adelante.\" Si le falta algo, repite la instrucción con las mismas palabras.",
+          "- Di lo que sí, no lo que no. En lugar de \"No corras\", di: \"Camina.\" En lugar de \"No tomes la azul\", di: \"Toma la roja.\" Revisa las instrucciones que más usas y cambia las que empiezan con \"no\".",
         ].join("\n"),
         watchFor:
-          "Pide que le repitan cuando se pierde, sin que se lo sugieras. Hace lo que dice la frase corta sin que tengas que explicarla de nuevo, y hace los pasos en el orden correcto sin que tengas que detenerle.",
+          "Hace los pasos en el orden correcto sin que tengas que detenerle. Puede decir la instrucción con sus propias palabras antes de empezar, y responde a la primera, sin quedarse en lo que no debía hacer.",
       },
       home: {
         observed: EARLY_OBSERVED,
         toTry: [
           "- Di los pasos en el orden en que se hacen. En lugar de \"Antes de cenar, lávate las manos\", di: \"Lávate las manos. Luego siéntate a cenar.\" Usa siempre \"primero\" y \"luego\". Si lo hace en otro orden, repite igual: \"Primero esto, luego aquello.\"",
-          "- Muestra primero cómo se hace. Ponte frente a la niña o el niño y haz los pasos despacio, diciendo cada uno: \"Primero me lavo las manos. Luego me siento.\" Pide: \"Ahora tú.\" Espera a que haga los pasos sin ayudarle. Si se equivoca, vuelve a mostrarlo igual, sin regañar.",
+          "- Comprueba que se quedó con el paso. Da la instrucción una vez: \"Guarda los juguetes en la caja.\" Pregunta sin prisa: \"¿Qué vas a hacer?\" Si lo dice bien: \"Eso es, adelante.\" Si le falta algo, repite la instrucción con las mismas palabras.",
+          "- Di lo que sí, no lo que no. En lugar de \"No grites\", di: \"Habla bajito.\" En lugar de \"No dejes tus zapatos ahí\", di: \"Pon tus zapatos en la entrada.\" Revisa las instrucciones que más usas y cambia las que empiezan con \"no\".",
         ].join("\n"),
         watchFor:
-          "Hace los pasos en el orden en que los mostraste y, con el tiempo, en el orden correcto sin que tengas que detenerle.",
+          "Hace los pasos en el orden correcto sin que tengas que detenerle. Puede decir la instrucción con sus propias palabras antes de empezar, y responde a la primera, sin quedarse en lo que no debía hacer.",
       },
     },
   },

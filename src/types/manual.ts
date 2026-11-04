@@ -1,8 +1,6 @@
-import type { Descriptors, ErrorCode } from "./profile";
+import type { ErrorCode } from "./profile";
 
-export type Trigger = Partial<
-  Pick<Descriptors, "span" | "orderHandling" | "negationHandling" | "startsEarly" | "asksForRepeats" | "pace">
->;
+export type StrategyCode = ErrorCode | "F1";
 
 export type Evidence = "direct" | "indirect" | "theoretical" | "none";
 
@@ -10,8 +8,7 @@ export interface Strategy {
   id: string;
   title: string;
   setting: "classroom" | "home" | "both";
-  trigger: Trigger;
-  codes: ErrorCode[];
+  codes: StrategyCode[];
   rationale: string;
   script: string[];
   watchFor: string;

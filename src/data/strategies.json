@@ -5,7 +5,6 @@
       "id": "s01",
       "title": "Una instrucción a la vez",
       "setting": "both",
-      "trigger": { "span": "one" },
       "codes": ["E1", "E2"],
       "rationale": "Da un solo paso a la vez y espera a que se cumpla antes de dar el siguiente.",
       "script": [
@@ -26,7 +25,6 @@
       "id": "s02",
       "title": "Comprueba que se quedó con el paso",
       "setting": "both",
-      "trigger": { "span": "one", "asksForRepeats": "never" },
       "codes": ["E4", "E8"],
       "rationale": "Después de dar la instrucción, pide que diga qué va a hacer antes de empezar.",
       "script": [
@@ -47,7 +45,6 @@
       "id": "s03",
       "title": "Muestra los pasos con objetos",
       "setting": "both",
-      "trigger": { "span": "one", "orderHandling": "struggles" },
       "codes": ["E1", "E2", "E8"],
       "rationale": "Muestra los objetos en el orden en que se van a usar.",
       "script": [
@@ -68,7 +65,6 @@
       "id": "s04",
       "title": "Dos pasos y una pausa",
       "setting": "both",
-      "trigger": { "span": "two" },
       "codes": ["E1", "E2"],
       "rationale": "Da la tarea en partes de dos pasos, con una pausa entre ellas.",
       "script": [
@@ -89,7 +85,6 @@
       "id": "s05",
       "title": "Invítale a decir la instrucción",
       "setting": "both",
-      "trigger": { "span": "two", "asksForRepeats": "sometimes" },
       "codes": ["E4", "E8"],
       "rationale": "Pide que diga la instrucción con sus propias palabras antes de empezar.",
       "script": [
@@ -110,7 +105,6 @@
       "id": "s06",
       "title": "Tareas largas en tandas de dos",
       "setting": "both",
-      "trigger": { "span": "two", "orderHandling": "holds" },
       "codes": ["E1", "E2"],
       "rationale": "Anuncia que la tarea tiene partes y dalas una por una.",
       "script": [
@@ -131,7 +125,6 @@
       "id": "s07",
       "title": "Di los pasos en el orden en que se hacen",
       "setting": "both",
-      "trigger": { "span": "two", "orderHandling": "struggles" },
       "codes": ["E3"],
       "rationale": "Di los pasos en el mismo orden en que se hacen, sin usar \"antes de\" ni \"después de\".",
       "script": [
@@ -152,7 +145,6 @@
       "id": "s13",
       "title": "Enseña a pedir que repitan",
       "setting": "both",
-      "trigger": { "asksForRepeats": "never" },
       "codes": ["E8"],
       "rationale": "Muestra que pedir que repitan está permitido y cómo hacerlo.",
       "script": [
@@ -173,8 +165,7 @@
       "id": "s14",
       "title": "Reconoce cuando pide ayuda",
       "setting": "both",
-      "trigger": { "asksForRepeats": "sometimes" },
-      "codes": ["E8"],
+      "codes": ["F1"],
       "rationale": "Reconoce en el momento en que pide que le repitan.",
       "script": [
         "Cuando pida que repitas, responde: \"Qué bueno que preguntaste.\"",
@@ -193,7 +184,6 @@
       "id": "s15",
       "title": "Repite igual y deja que la diga",
       "setting": "both",
-      "trigger": { "asksForRepeats": "often" },
       "codes": ["E1", "E2"],
       "rationale": "Repite la instrucción con las mismas palabras y deja que la diga en voz alta.",
       "script": [
@@ -214,7 +204,6 @@
       "id": "s18",
       "title": "Di lo que sí, no lo que no",
       "setting": "both",
-      "trigger": { "negationHandling": "struggles" },
       "codes": ["E6"],
       "rationale": "Di directamente lo que hay que hacer, en lugar de lo que no hay que hacer.",
       "script": [
@@ -234,7 +223,6 @@
       "id": "s21",
       "title": "Acorta la instrucción",
       "setting": "both",
-      "trigger": { "span": "one" },
       "codes": ["E1", "E2"],
       "rationale": "Reduce el número de pasos de cada instrucción.",
       "script": [
@@ -255,7 +243,6 @@
       "id": "s22",
       "title": "Usa frases sencillas",
       "setting": "both",
-      "trigger": { "orderHandling": "struggles" },
       "codes": ["E3", "E6"],
       "rationale": "Usa frases cortas en voz activa, sin frases metidas dentro de otras.",
       "script": [
@@ -276,7 +263,6 @@
       "id": "s23",
       "title": "Muestra primero cómo se hace",
       "setting": "both",
-      "trigger": { "orderHandling": "struggles" },
       "codes": ["E3", "E4"],
       "rationale": "Muestra los pasos con las manos antes de pedir que los haga.",
       "script": [
@@ -297,7 +283,6 @@
       "id": "s24",
       "title": "Menos opciones y menos detalles",
       "setting": "both",
-      "trigger": { "negationHandling": "struggles" },
       "codes": ["E4", "E6"],
       "rationale": "Reduce los objetos posibles y los detalles que se piden en cada paso.",
       "script": [
@@ -318,7 +303,6 @@
       "id": "s25",
       "title": "Un lugar tranquilo y de frente",
       "setting": "both",
-      "trigger": {},
       "codes": ["E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8"],
       "rationale": "Da la instrucción en un lugar con poco ruido, de frente a la niña o al niño.",
       "script": [

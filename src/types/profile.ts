@@ -82,6 +82,10 @@ export type ErrorCode = "E1" | "E2" | "E3" | "E4" | "E5" | "E6" | "E7" | "E8";
 
 export const ERROR_CODES: ErrorCode[] = ["E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8"];
 
+export const SEVERITY: ErrorCode[] = ["E8", "E1", "E2", "E3", "E4", "E6", "E5"];
+
+export const DOMINANT_MIN_TRIALS = 2;
+
 export type WrongAttribute = "colour" | "shape" | "colourAndShape";
 
 export interface TrialCodes {
@@ -267,8 +271,8 @@ export const FIXTURE_TYPICAL_WITH_SHORT_SPAN: Profile = {
     replaysRequested: 3,
     trialsAttempted: 12,
     trialsCompleted: 12,
-    codeCounts: noCodes,
-    dominantCode: null,
+    codeCounts: { ...noCodes, E1: 2, E4: 2, E6: 2 },
+    dominantCode: "E1",
   },
   descriptors: {
     span: "two",
@@ -306,8 +310,8 @@ export const FIXTURE_SAME_SPAN_NO_MONITORING: Profile = {
     replaysRequested: 0,
     trialsAttempted: 12,
     trialsCompleted: 12,
-    codeCounts: noCodes,
-    dominantCode: null,
+    codeCounts: { ...noCodes, E3: 2, E4: 2, E6: 2, E7: 5 },
+    dominantCode: "E3",
   },
   descriptors: {
     span: "two",

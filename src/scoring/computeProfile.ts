@@ -12,11 +12,7 @@ import type {
   TrialSpec,
   WrongAttribute,
 } from "../types/profile";
-import { assessReliability, describe, ERROR_CODES } from "../types/profile";
-
-const SEVERITY: ErrorCode[] = ["E8", "E1", "E2", "E3", "E4", "E6", "E5"];
-
-const DOMINANT_MIN_TRIALS = 2;
+import { assessReliability, describe, DOMINANT_MIN_TRIALS, ERROR_CODES, SEVERITY } from "../types/profile";
 
 const DIMENSIONS: Dimension[] = ["baseline", "twoActions", "reversed", "threeActions", "negation"];
 
