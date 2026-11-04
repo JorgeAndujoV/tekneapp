@@ -1,15 +1,22 @@
 import type {
   Dimension,
+  ErrorCode,
   Flag,
   Measures,
   Profile,
   Session,
   Tap,
+  TrialCodes,
   TrialOutcome,
   TrialResult,
   TrialSpec,
+  WrongAttribute,
 } from "../types/profile";
-import { assessReliability, describe } from "../types/profile";
+import { assessReliability, describe, ERROR_CODES } from "../types/profile";
+
+const SEVERITY: ErrorCode[] = ["E8", "E1", "E2", "E3", "E4", "E6", "E5"];
+
+const DOMINANT_MIN_TRIALS = 2;
 
 const DIMENSIONS: Dimension[] = ["baseline", "twoActions", "reversed", "threeActions", "negation"];
 
@@ -41,6 +48,70 @@ function selfCorrections(taps: Tap[]): number {
   const early = taps.filter((tap) => tap.t < 0 && tap.cardId !== null).map((tap) => tap.cardId);
   const response = responseTaps(taps);
   return early.filter((id, i) => i < response.length && response[i] !== id).length;
+}
+
+function isSubsequence(response: string[], expected: string[]): boolean {
+  let matched = 0;
+  for (const id of expected) if (id === response[matched]) matched++;
+  return matched === response.length;
+}
+
+function unmatched(response: string[], expected: string[]): { foreign: string[]; missing: string[] } {
+  const missing = [...expected];
+  const foreign: string[] = [];
+  for (const id of response) {
+    const at = missing.indexOf(id);
+    if (at < 0) foreign.push(id);
+    else missing.splice(at, 1);
+  }
+  return { foreign, missing };
+}
+
+function wrongAttribute(foreign: string[], missing: string[]): WrongAttribute {
+  const colour = foreign.some((id, i) => id[0] !== missing[i]?.[0]);
+  const shape = foreign.some((id, i) => id[2] !== missing[i]?.[2]);
+  return colour && shape ? "colourAndShape" : colour ? "colour" : "shape";
+}
+
+const sameSequence = (a: string[], b: string[]) => a.length === b.length && a.every((id, i) => id === b[i]);
+
+export function codeTrial(result: TrialResult, spec: TrialSpec, previous?: TrialSpec): TrialCodes {
+  const { expected } = spec;
+  const response = responseTaps(result.taps).slice(0, expected.length);
+  const coded: TrialCodes = { trialId: result.trialId, codes: [] };
+  const { codes } = coded;
+  const short = response.length < expected.length;
+
+  if (response.length === 0) {
+    codes.push("E8");
+  } else if (!sameSequence(response, expected)) {
+    const { foreign, missing } = unmatched(response, expected);
+    if (short && response.every((id, i) => id === expected[i])) {
+      codes.push("E1");
+    } else if (short && isSubsequence(response, expected)) {
+      codes.push("E2");
+    } else if (foreign.length === 0) {
+      codes.push("E3");
+      if (spec.dimension === "reversed") coded.reversedItem = true;
+    } else {
+      codes.push("E4");
+      coded.wrongAttribute = wrongAttribute(foreign, missing);
+    }
+    if (previous && sameSequence(response, previous.expected) && (codes[0] === "E3" || codes[0] === "E4")) {
+      codes.push("E5");
+    }
+  }
+
+  if (spec.dimension === "negation" && codes.length > 0) codes.push("E6");
+  if (result.taps.some((tap) => tap.t < 0)) codes.push("E7");
+  return coded;
+}
+
+function dominantCode(counts: Record<ErrorCode, number>): ErrorCode | null {
+  return SEVERITY.reduce<ErrorCode | null>(
+    (best, code) => (counts[code] >= DOMINANT_MIN_TRIALS && (best === null || counts[code] > counts[best]) ? code : best),
+    null,
+  );
 }
 
 function median(values: number[]): number | null {
@@ -86,6 +157,11 @@ export function computeProfile(session: Session, trials: TrialSpec[]): Profile {
     return first ? [first.t] : [];
   });
 
+  const trialCodes = scored.map(({ spec, result }, i) => codeTrial(result, spec, scored[i - 1]?.spec));
+  const codeCounts = Object.fromEntries(
+    ERROR_CODES.map((code) => [code, trialCodes.filter((t) => t.codes.includes(code)).length]),
+  ) as Record<ErrorCode, number>;
+
   const forward = accuracy.twoActions;
   const reversed = accuracy.reversed;
 
@@ -95,11 +171,13 @@ export function computeProfile(session: Session, trials: TrialSpec[]): Profile {
     accuracy,
     orderCost: forward === null || reversed === null ? null : forward - reversed,
     medianFirstTapMs: median(firstTaps),
-    prematureStarts: scored.filter(({ result }) => result.taps.some((tap) => tap.t < 0)).length,
+    prematureStarts: codeCounts.E7,
     selfCorrections: scored.reduce((sum, { result }) => sum + selfCorrections(result.taps), 0),
     replaysRequested: scored.filter(({ result }) => result.replayed).length,
     trialsAttempted: scored.filter(({ result }) => result.taps.some((tap) => tap.cardId !== null)).length,
     trialsCompleted: scored.filter(({ result }) => !result.abandoned).length,
+    codeCounts,
+    dominantCode: dominantCode(codeCounts),
   };
 
   const baseline = scored.filter((s) => s.spec.dimension === "baseline");
@@ -110,11 +188,12 @@ export function computeProfile(session: Session, trials: TrialSpec[]): Profile {
   if (flags.length > 0) flags.push("priority_referral");
 
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     sessionId: session.sessionId,
     childCode: session.childCode,
     grade: 1,
     measures,
+    trialCodes,
     descriptors: describe(measures),
     flags,
     reliability: assessReliability(measures),

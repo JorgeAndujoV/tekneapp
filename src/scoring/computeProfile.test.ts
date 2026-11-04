@@ -84,6 +84,27 @@ describe("computeProfile", () => {
     expect(profile.flags).toContain("priority_referral");
   });
 
+  it("names the most frequent answer code as dominant and breaks ties by severity", () => {
+    const stopped = ["t03", "t04"];
+    const wrongShape: Record<string, string[]> = { t05: ["y-c", "y-s"], t08: ["r-c", "b-s", "y-s"] };
+    const results = TRIALS.map((trial) => {
+      if (stopped.includes(trial.id)) return answer(trial.id, [expectedOf(trial.id)[0]]);
+      if (wrongShape[trial.id]) return answer(trial.id, wrongShape[trial.id]);
+      return correct(trial.id);
+    });
+    const { measures } = computeProfile(session(results), TRIALS);
+    expect(measures.codeCounts.E1).toBe(2);
+    expect(measures.codeCounts.E4).toBe(2);
+    expect(measures.dominantCode).toBe("E1");
+  });
+
+  it("names no dominant code when a pattern appears only once", () => {
+    const results = TRIALS.map((trial) =>
+      trial.id === "t05" ? answer("t05", ["y-c", "y-s"]) : correct(trial.id),
+    );
+    expect(computeProfile(session(results), TRIALS).measures.dominantCode).toBeNull();
+  });
+
   it("counts taps during the audio as a premature start without closing the window", () => {
     const early: Tap[] = [{ cardId: "r-c", t: -400 }];
     expect(isResponseComplete(early, ["r-c"])).toBe(false);

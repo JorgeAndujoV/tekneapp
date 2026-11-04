@@ -14,7 +14,7 @@
  *   1. The generation side reads `descriptors` only. Never `measures`.
  *      Numbers cannot leak into the manual if the model never receives them.
  *   2. Nothing here says WHY a child failed. We record what happened.
- *      The error taxonomy is a later file, applied to stored taps.
+ *      The error codes below describe the response, never a cause.
  */
 
 // ---------------------------------------------------------------------------
@@ -78,6 +78,19 @@ export type TrialOutcome =
   | "wrongElement" // right count, at least one wrong card
   | "noResponse";
 
+export type ErrorCode = "E1" | "E2" | "E3" | "E4" | "E5" | "E6" | "E7" | "E8";
+
+export const ERROR_CODES: ErrorCode[] = ["E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8"];
+
+export type WrongAttribute = "colour" | "shape" | "colourAndShape";
+
+export interface TrialCodes {
+  trialId: string;
+  codes: ErrorCode[];
+  wrongAttribute?: WrongAttribute;
+  reversedItem?: boolean;
+}
+
 // ---------------------------------------------------------------------------
 // 3. Measures  — numbers. For matching and for audit. NOT for the prompt.
 // ---------------------------------------------------------------------------
@@ -99,6 +112,9 @@ export interface Measures {
 
   trialsAttempted: number;
   trialsCompleted: number;
+
+  codeCounts: Record<ErrorCode, number>;
+  dominantCode: ErrorCode | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -138,11 +154,12 @@ export type Reliability =
 // ---------------------------------------------------------------------------
 
 export interface Profile {
-  schemaVersion: 1;
+  schemaVersion: 2;
   sessionId: string;
   childCode: string;
   grade: 1;
   measures: Measures;
+  trialCodes: TrialCodes[];
   descriptors: Descriptors;
   flags: Flag[];
   reliability: Reliability;
@@ -217,6 +234,8 @@ export function assessReliability(m: Measures): Reliability {
 //    before a single real tap exists.
 // ---------------------------------------------------------------------------
 
+const noCodes: Record<ErrorCode, number> = { E1: 0, E2: 0, E3: 0, E4: 0, E5: 0, E6: 0, E7: 0, E8: 0 };
+
 const emptyAccuracy: Record<Dimension, number | null> = {
   baseline: null,
   twoActions: null,
@@ -227,7 +246,7 @@ const emptyAccuracy: Record<Dimension, number | null> = {
 
 /** Breaks at three actions, order is fine, asks for help. */
 export const FIXTURE_TYPICAL_WITH_SHORT_SPAN: Profile = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   sessionId: "demo-001",
   childCode: "NL-1A-07",
   grade: 1,
@@ -248,6 +267,8 @@ export const FIXTURE_TYPICAL_WITH_SHORT_SPAN: Profile = {
     replaysRequested: 3,
     trialsAttempted: 12,
     trialsCompleted: 12,
+    codeCounts: noCodes,
+    dominantCode: null,
   },
   descriptors: {
     span: "two",
@@ -257,13 +278,14 @@ export const FIXTURE_TYPICAL_WITH_SHORT_SPAN: Profile = {
     asksForRepeats: "sometimes",
     pace: "measured",
   },
+  trialCodes: [],
   flags: [],
   reliability: "ok",
 };
 
 /** Same span, never asks, starts before the instruction ends. Opposite manual. */
 export const FIXTURE_SAME_SPAN_NO_MONITORING: Profile = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   sessionId: "demo-002",
   childCode: "NL-1A-11",
   grade: 1,
@@ -284,6 +306,8 @@ export const FIXTURE_SAME_SPAN_NO_MONITORING: Profile = {
     replaysRequested: 0,
     trialsAttempted: 12,
     trialsCompleted: 12,
+    codeCounts: noCodes,
+    dominantCode: null,
   },
   descriptors: {
     span: "two",
@@ -293,13 +317,14 @@ export const FIXTURE_SAME_SPAN_NO_MONITORING: Profile = {
     asksForRepeats: "never",
     pace: "quick",
   },
+  trialCodes: [],
   flags: [],
   reliability: "ok",
 };
 
 /** Quit at trial four. The manual must say so and recommend nothing. */
 export const FIXTURE_INSUFFICIENT: Profile = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   sessionId: "demo-003",
   childCode: "NL-1B-02",
   grade: 1,
@@ -314,6 +339,8 @@ export const FIXTURE_INSUFFICIENT: Profile = {
     replaysRequested: 1,
     trialsAttempted: 4,
     trialsCompleted: 3,
+    codeCounts: noCodes,
+    dominantCode: null,
   },
   descriptors: {
     span: "unknown",
@@ -323,6 +350,7 @@ export const FIXTURE_INSUFFICIENT: Profile = {
     asksForRepeats: "sometimes",
     pace: "measured",
   },
+  trialCodes: [],
   flags: ["session_abandoned"],
   reliability: "insufficient",
 };
