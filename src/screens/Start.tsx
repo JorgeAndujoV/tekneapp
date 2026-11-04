@@ -27,7 +27,50 @@ export default function Start({ onBegin, onDemo }: Props) {
   const [step, setStep] = useState(1);
   const [situations, setSituations] = useState<Context>(NO_CONTEXT);
   const valid = isValidChildCode(code);
+  const [showWelcome, setShowWelcome] = useState(true);
 
+  if (showWelcome) {
+    return (
+      <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-6 px-6 py-10">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#23476B] text-2xl text-white">
+            ✦
+          </div>
+          <span className="text-2xl font-semibold">Tekne</span>
+        </div>
+
+        <div className="flex flex-col items-center gap-4 rounded-3xl bg-[#EAF1F7] px-6 py-10 text-center">
+          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white text-4xl">
+            🧠
+          </div>
+          <h1 className="text-3xl font-semibold leading-tight">
+            Bienvenido a Tekne
+          </h1>
+          <p className="text-lg leading-relaxed text-muted">
+            Una herramienta de soporte de aprendizaje para maestros y padres de familia, con estrategias adaptadas a cada experiencia.
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-4 rounded-2xl border-2 border-line bg-white p-5 text-lg">
+          <p>✓ Actividades guiadas</p>
+          <p>✓ Recomendaciones personalizadas</p>
+          <p>✓ Participación voluntaria</p>
+        </div>
+
+        <button
+          type="button"
+          className="btn-primary"
+          onClick={() => setShowWelcome(false)}
+        >
+          Comenzar
+        </button>
+
+        <p className="text-center text-base text-muted">
+          Cada niño aprende a su manera.
+        </p>
+      </main>
+    );
+  }
   return (
     <main className="mx-auto flex min-h-full max-w-md flex-col gap-8 px-6 py-10">
       <h1 className="text-3xl font-semibold leading-tight">Seguir instrucciones</h1>
