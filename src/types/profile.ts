@@ -134,7 +134,6 @@ export interface Descriptors {
   negationHandling: Holds;
   startsEarly: boolean;
   asksForRepeats: "never" | "sometimes" | "often";
-  pace: "quick" | "measured" | "slow" | "unknown";
 }
 
 // ---------------------------------------------------------------------------
@@ -216,14 +215,6 @@ export function describe(m: Measures): Descriptors {
         : m.replaysRequested <= 3
           ? "sometimes"
           : "often",
-    pace:
-      m.medianFirstTapMs === null
-        ? "unknown"
-        : m.medianFirstTapMs < 800
-          ? "quick"
-          : m.medianFirstTapMs <= 3000
-            ? "measured"
-            : "slow",
   };
 }
 
@@ -280,7 +271,6 @@ export const FIXTURE_TYPICAL_WITH_SHORT_SPAN: Profile = {
     negationHandling: "struggles",
     startsEarly: false,
     asksForRepeats: "sometimes",
-    pace: "measured",
   },
   trialCodes: [],
   flags: [],
@@ -319,7 +309,6 @@ export const FIXTURE_SAME_SPAN_NO_MONITORING: Profile = {
     negationHandling: "struggles",
     startsEarly: true,
     asksForRepeats: "never",
-    pace: "quick",
   },
   trialCodes: [],
   flags: [],
@@ -352,7 +341,6 @@ export const FIXTURE_INSUFFICIENT: Profile = {
     negationHandling: "unknown",
     startsEarly: false,
     asksForRepeats: "sometimes",
-    pace: "measured",
   },
   trialCodes: [],
   flags: ["session_abandoned"],

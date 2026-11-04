@@ -43,10 +43,6 @@ function describeInWords(d: Descriptors): string[] {
   if (d.asksForRepeats === "sometimes") lines.push("A veces pidió escuchar la instrucción otra vez.");
   if (d.asksForRepeats === "often") lines.push("Pidió escuchar la instrucción otra vez con frecuencia.");
 
-  if (d.pace === "quick") lines.push("Empezó a responder rápido.");
-  if (d.pace === "measured") lines.push("Se tomó un momento antes de responder.");
-  if (d.pace === "slow") lines.push("Tardó en empezar a responder.");
-
   return lines;
 }
 
