@@ -2,11 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import type { Intake, Session, TrialResult } from "../types/profile";
 import { VOCAB_ITEMS } from "../data/vocabCheck";
 import { TRIALS } from "../data/trials";
-import { classifyTrial } from "../scoring/computeProfile";
+import { classifySelection, classifyTrial } from "../scoring/computeProfile";
 import { appendResult, markDistress, recordVocabCheck, startSession } from "../task/session";
 import { playClip, stopClip } from "../task/audio";
 import TapSurface from "../task/TapSurface";
-import TrialRunner, { ReplayButton } from "../task/TrialRunner";
+import TrialRunner from "../task/TrialRunner";
 
 const GAP_MS = 900;
 
@@ -75,7 +75,10 @@ export default function Task({ childCode, intake, onFinish }: Props) {
 
   function handleDone(result: TrialResult) {
     if (step.kind === "vocab") {
-      vocabCorrect.current.push(classifyTrial(result.taps, step.expected) === "correct");
+      const outcome = result.finalSelection
+        ? classifySelection(result.finalSelection, step.expected)
+        : classifyTrial(result.taps, step.expected);
+      vocabCorrect.current.push(outcome === "correct");
       if (vocabCorrect.current.length === VOCAB_ITEMS.length) {
         session.current = recordVocabCheck(session.current, vocabCorrect.current.every(Boolean));
       }
@@ -131,12 +134,13 @@ export default function Task({ childCode, intake, onFinish }: Props) {
           id={step.id}
           audioFile={step.audioFile}
           expected={step.expected}
+          isLast={stepIndex + 1 >= STEPS.length}
           onDone={handleDone}
         />
       ) : (
         <>
-          <TapSurface onTap={() => {}} />
-          <ReplayButton visible={false} />
+          <TapSurface onTap={() => {}} selectedIds={[]} />
+          <div className="h-24 shrink-0 pb-[env(safe-area-inset-bottom)]" />
         </>
       )}
     </main>

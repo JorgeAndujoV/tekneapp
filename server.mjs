@@ -73,8 +73,11 @@ export async function handleGenerate(req, res) {
 
   try {
     let upstream = await callUpstream(true);
-    // some providers/models reject response_format with a 400; retry once in plain-text mode
-    if (!upstream.ok && upstream.status === 400) {
+    // a model/provider that rejects response_format doesn't always answer with a clean 400 —
+    // e.g. Gemma via Google AI Studio instead fails with a 500 that OpenRouter forwards as 502 —
+    // so retry once in plain-text mode on ANY failure of the json-mode attempt, not just a 400
+    if (!upstream.ok) {
+      console.error(`[generate] json-mode attempt failed (${upstream.status}), retrying without it`);
       upstream = await callUpstream(false);
     }
     if (!upstream.ok) {

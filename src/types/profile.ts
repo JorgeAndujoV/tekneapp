@@ -52,7 +52,12 @@ export interface Tap {
 
 export interface TrialResult {
   trialId: string;
+  /** Raw pointer events, including selections later removed and taps outside cards. */
   taps: Tap[];
+  /** Final ordered card selection when using the selectable-card interface. */
+  finalSelection?: Tap[];
+  /** Number of times an already-selected card was explicitly deselected. */
+  selfCorrections?: number;
   replayed: boolean;
   /** Response window closed without a complete sequence. */
   abandoned: boolean;
@@ -119,7 +124,7 @@ export interface Measures {
 
   medianFirstTapMs: number | null;
   prematureStarts: number; // taps before audio ended
-  selfCorrections: number; // a tap reversed within the same trial
+  selfCorrections: number; // explicit deselections of previously selected cards
   replaysRequested: number;
 
   trialsAttempted: number;
@@ -281,7 +286,7 @@ export const FIXTURE_TYPICAL_WITH_SHORT_SPAN: Profile = {
     orderCost: 0.17,
     medianFirstTapMs: 1450,
     prematureStarts: 0,
-    selfCorrections: 2,
+    selfCorrections: 0,
     replaysRequested: 3,
     trialsAttempted: 12,
     trialsCompleted: 12,

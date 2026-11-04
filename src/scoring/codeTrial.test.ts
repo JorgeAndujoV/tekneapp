@@ -56,4 +56,29 @@ describe("codeTrial", () => {
     expect(coded.wrongAttribute).toBe(row.attribute);
     expect(coded.reversedItem).toBe(row.reversed);
   });
+
+  it("reads the final selection when there is one, so a card taken back is not an error", () => {
+    const taps: Tap[] = [
+      { cardId: "b-c", t: 900 },
+      { cardId: "r-c", t: 1500 },
+      { cardId: "r-c", t: 2100 },
+      { cardId: "r-s", t: 2700 },
+    ];
+    const finalSelection: Tap[] = [
+      { cardId: "b-c", t: 900 },
+      { cardId: "r-s", t: 2700 },
+    ];
+    const coded = codeTrial({ trialId: "t03", taps, finalSelection, selfCorrections: 1, replayed: false, abandoned: false }, find("t03"));
+    expect(coded.codes).toEqual([]);
+  });
+
+  it("counts a card chosen during the audio as part of the answer and also as E7", () => {
+    const taps: Tap[] = [
+      { cardId: "b-c", t: -300 },
+      { cardId: "r-s", t: 900 },
+    ];
+    const finalSelection: Tap[] = taps;
+    const coded = codeTrial({ trialId: "t03", taps, finalSelection, selfCorrections: 0, replayed: false, abandoned: false }, find("t03"));
+    expect(coded.codes).toEqual(["E7"]);
+  });
 });
