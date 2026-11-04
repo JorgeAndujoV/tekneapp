@@ -96,7 +96,7 @@ function normalize(text: string): string {
   return text.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 }
 
-function namesCondition(sentence: string): boolean {
+export function namesCondition(sentence: string): boolean {
   const plain = normalize(sentence);
   return (
     BLOCKED_TERMS.some((term) => new RegExp(`(^|[^a-z])${term}`).test(plain)) ||

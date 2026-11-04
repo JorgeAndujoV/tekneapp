@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { adaptedExamples, chosenStrategies, generateManual, parseReply } from "./generateManual";
+import { adaptedExamples, checkExampleLine, chosenStrategies, generateManual, parseReply } from "./generateManual";
 import { candidatesFor, matchStrategies, selectStrategies, STRATEGIES } from "./matchStrategies";
 import { buildPrompt } from "./buildPrompt";
 import { cleanContext, CONTEXT_MAX, finalContext, hasContext, NO_CONTEXT } from "./context";
@@ -156,5 +156,22 @@ describe("selecting strategies", () => {
     const preferred = candidates.filter((s) => !s.codes.includes("E1"));
     const chosen = selectStrategies(FIXTURE_TYPICAL_WITH_SHORT_SPAN, preferred);
     expect(chosen.some((s) => s.codes.includes("E1"))).toBe(true);
+  });
+});
+
+describe("example verdicts", () => {
+  it("names the reason an example is dropped", () => {
+    const reasons = [
+      "Guarda tu pelota.",
+      "Z: Guarda tu pelota.",
+      `A: ${"palabra ".repeat(60)}`,
+      "A: Di 3 pasos.",
+      "A: Esto es para el autismo.",
+    ].map((line) => {
+      const verdict = checkExampleLine(line, candidates);
+      return verdict.ok ? "ok" : verdict.reason;
+    });
+    expect(reasons).toEqual(["format", "unknown", "long", "digit", "rails"]);
+    expect(checkExampleLine("A: Guarda tu pelota.", candidates).ok).toBe(true);
   });
 });

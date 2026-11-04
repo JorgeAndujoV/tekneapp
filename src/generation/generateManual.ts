@@ -110,16 +110,28 @@ export function parseReply(text: string): Reply {
   throw new GenerationError("La respuesta del modelo no tuvo el formato esperado. Puedes intentarlo de nuevo.");
 }
 
-// this is the one network call in the app
+export type ExampleVerdict =
+  | { ok: true; strategy: Strategy; text: string }
+  | { ok: false; reason: "format" | "unknown" | "long" | "digit" | "rails" };
+
+export function checkExampleLine(line: string, candidates: Strategy[]): ExampleVerdict {
+  const match = line.match(/^\s*-?\s*([A-Z])\s*:\s*(.+)$/);
+  if (!match) return { ok: false, reason: "format" };
+  const strategy = candidates[match[1].charCodeAt(0) - 65];
+  const text = match[2].trim();
+  if (!strategy) return { ok: false, reason: "unknown" };
+  if (text.length > MAX_EXAMPLE_LENGTH) return { ok: false, reason: "long" };
+  if (/\d/.test(text)) return { ok: false, reason: "digit" };
+  if (!survivesRails(text)) return { ok: false, reason: "rails" };
+  return { ok: true, strategy, text };
+}
+
 export function adaptedExamples(toTry: string, strategies: Strategy[], hasSituation: boolean): Record<string, string> {
   const found: Record<string, string> = {};
   if (!hasSituation) return found;
   for (const line of toTry.split("\n")) {
-    const match = line.match(/^\s*-?\s*([A-Z])\s*:\s*(.+)$/);
-    if (!match) continue;
-    const strategy = strategies[match[1].charCodeAt(0) - 65];
-    const text = match[2].trim();
-    if (strategy && text.length <= MAX_EXAMPLE_LENGTH && !/\d/.test(text) && survivesRails(text)) found[strategy.id] = text;
+    const verdict = checkExampleLine(line, strategies);
+    if (verdict.ok) found[verdict.strategy.id] = verdict.text;
   }
   return found;
 }
