@@ -89,10 +89,10 @@ describe("computeProfile", () => {
 
   it("names the most frequent answer code as dominant and breaks ties by severity", () => {
     const stopped = ["t03", "t04"];
-    const wrongShape: Record<string, string[]> = { t05: ["y-c", "y-s"], t08: ["r-c", "b-s", "y-s"] };
+    const wrongAnimal: Record<string, string[]> = { t05: ["yellow-a1", "yellow-a2"], t08: ["red-a1", "blue-a2", "yellow-a2"] };
     const results = TRIALS.map((trial) => {
       if (stopped.includes(trial.id)) return answer(trial.id, [expectedOf(trial.id)[0]]);
-      if (wrongShape[trial.id]) return answer(trial.id, wrongShape[trial.id]);
+      if (wrongAnimal[trial.id]) return answer(trial.id, wrongAnimal[trial.id]);
       return correct(trial.id);
     });
     const { measures } = computeProfile(session(results), TRIALS);
@@ -103,18 +103,18 @@ describe("computeProfile", () => {
 
   it("names no dominant code when a pattern appears only once", () => {
     const results = TRIALS.map((trial) =>
-      trial.id === "t05" ? answer("t05", ["y-c", "y-s"]) : correct(trial.id),
+      trial.id === "t05" ? answer("t05", ["yellow-a1", "yellow-a2"]) : correct(trial.id),
     );
     expect(computeProfile(session(results), TRIALS).measures.dominantCode).toBeNull();
   });
 
   it("counts taps during the audio as a premature start without closing the window", () => {
-    const early: Tap[] = [{ cardId: "r-c", t: -400 }];
-    expect(isResponseComplete(early, ["r-c"])).toBe(false);
-    expect(isResponseComplete([...early, { cardId: "r-c", t: 300 }], ["r-c"])).toBe(true);
+    const early: Tap[] = [{ cardId: "red-a1", t: -400 }];
+    expect(isResponseComplete(early, ["red-a1"])).toBe(false);
+    expect(isResponseComplete([...early, { cardId: "red-a1", t: 300 }], ["red-a1"])).toBe(true);
 
     const results = TRIALS.map((trial) =>
-      trial.id === "t01" ? answer("t01", ["r-c"], early) : correct(trial.id),
+      trial.id === "t01" ? answer("t01", ["red-a1"], early) : correct(trial.id),
     );
     const profile = computeProfile(session(results), TRIALS);
     expect(profile.measures.prematureStarts).toBe(1);
@@ -124,7 +124,7 @@ describe("computeProfile", () => {
     const results = TRIALS.map((trial) => correct(trial.id));
     const multiStep = results.find((result) => result.trialId === "t03")!;
     const expected = expectedOf("t03");
-    multiStep.taps = [{ cardId: "y-c", t: 200 }, { cardId: "b-c", t: 400 }];
+    multiStep.taps = [{ cardId: "yellow-a1", t: 200 }, { cardId: "blue-a1", t: 400 }];
     multiStep.finalSelection = expected.map((cardId, index) => ({ cardId, t: 600 + index * 300 }));
     multiStep.selfCorrections = 2;
 

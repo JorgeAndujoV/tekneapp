@@ -12,7 +12,7 @@
     "bench": "vitest run --config vitest.bench.config.ts"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^1.4.0",
+    "@anthropic-ai/sdk": "^1.5.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
   },

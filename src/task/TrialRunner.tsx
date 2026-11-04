@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Tap, TrialResult } from "../types/profile";
-import { playClip, stopClip } from "./audio";
+import type { Animal } from "../data/animals";
+import { playClips, stopClip } from "./audio";
 import TapSurface from "./TapSurface";
 
 const SILENCE_LIMIT_MS = 15_000;
@@ -8,17 +9,20 @@ const MAX_TAPS = 3;
 
 interface Props {
   id: string;
-  audioFile: string;
+  instruction: string;
+  audioClips: string[];
   expected: string[];
+  animals: Animal[];
   isLast: boolean;
   onDone: (result: TrialResult) => void;
 }
 
-// one instruction: play it, open the response window when it ends, close on a full answer or 15 s of silence
-export default function TrialRunner({ id, audioFile, expected, isLast, onDone }: Props) {
+// one instruction: speak it, open the response window when it ends, close on a full answer or 15 s of silence
+export default function TrialRunner({ id, instruction, audioClips, expected, animals, isLast, onDone }: Props) {
   const [listening, setListening] = useState(true);
   const [canReplay, setCanReplay] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [audioError, setAudioError] = useState("");
 
   const raw = useRef<{ cardId: string | null; at: number }[]>([]);
   const selectedRef = useRef<string[]>([]);
@@ -29,6 +33,7 @@ export default function TrialRunner({ id, audioFile, expected, isLast, onDone }:
   const replayed = useRef(false);
   const finished = useRef(false);
   const silenceTimer = useRef<number | undefined>(undefined);
+  const audioRun = useRef(0);
 
   // times are measured from the end of the first playback, so taps during the audio come out negative
   function taps(): Tap[] {
@@ -67,20 +72,36 @@ export default function TrialRunner({ id, audioFile, expected, isLast, onDone }:
     armSilenceTimer();
   }
 
+  function startAudio() {
+    const run = ++audioRun.current;
+    setAudioError("");
+    setCanReplay(false);
+    setListening(true);
+    isListening.current = true;
+    playClips(audioClips).then(
+      () => {
+        if (run !== audioRun.current || finished.current) return;
+        if (!replayed.current && endedAt.current === null) endedAt.current = performance.now();
+        setCanReplay(true);
+        stopListening();
+      },
+      (error: unknown) => {
+        if (run !== audioRun.current || finished.current) return;
+        isListening.current = false;
+        setListening(false);
+        setAudioError(error instanceof Error ? error.message : "No se pudo reproducir el audio personalizado.");
+      },
+    );
+  }
+
   useEffect(() => {
-    let cancelled = false;
-    playClip(audioFile).then(() => {
-      if (cancelled || finished.current) return;
-      endedAt.current = performance.now();
-      setCanReplay(true);
-      stopListening();
-    });
+    startAudio();
     return () => {
-      cancelled = true;
+      audioRun.current++;
       window.clearTimeout(silenceTimer.current);
       stopClip();
     };
-  }, []);
+  }, [instruction, audioClips]);
 
   function handleTap(cardId: string | null) {
     if (finished.current) return;
@@ -121,33 +142,42 @@ export default function TrialRunner({ id, audioFile, expected, isLast, onDone }:
     setSelectedIds([]);
     isListening.current = true;
     setListening(true);
-    playClip(audioFile).then(() => {
-      if (!finished.current) stopListening();
-    });
+    startAudio();
   }
 
   return (
     <>
-      <TapSurface onTap={handleTap} selectedIds={selectedIds} />
+      <TapSurface onTap={handleTap} selectedIds={selectedIds} animals={animals} />
       <div className="flex h-28 shrink-0 items-center justify-center gap-3 px-4 pb-[env(safe-area-inset-bottom)]">
-        <button
-          type="button"
-          onClick={replay}
-          disabled={!canReplay || listening}
-          className={`min-h-14 rounded-full border-2 border-line bg-white px-6 py-4 text-xl font-medium text-ink ${
-            canReplay && !listening ? "" : "invisible"
-          }`}
-        >
-          Escuchar otra vez
-        </button>
-        <button
-          type="button"
-          onClick={finish}
-          disabled={listening}
-          className="btn-primary min-h-14 px-7 py-4 text-xl"
-        >
-          {isLast ? "Terminar" : "Siguiente"}
-        </button>
+        {audioError ? (
+          <div className="flex flex-col items-center gap-2 text-center" role="alert">
+            <p className="text-sm text-muted">{audioError}</p>
+            <button type="button" onClick={startAudio} className="btn-secondary">
+              Reintentar audio
+            </button>
+          </div>
+        ) : (
+          <>
+            <button
+              type="button"
+              onClick={replay}
+              disabled={!canReplay || listening}
+              className={`min-h-14 rounded-full border-2 border-line bg-white px-6 py-4 text-xl font-medium text-ink ${
+                canReplay && !listening ? "" : "invisible"
+              }`}
+            >
+              Escuchar otra vez
+            </button>
+            <button
+              type="button"
+              onClick={finish}
+              disabled={listening}
+              className="btn-primary min-h-14 px-7 py-4 text-xl"
+            >
+              {isLast ? "Terminar" : "Siguiente"}
+            </button>
+          </>
+        )}
       </div>
     </>
   );

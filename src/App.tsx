@@ -3,9 +3,10 @@ import type { Intake, Profile, Session } from "./types/profile";
 import { NO_CONTEXT, type Context } from "./generation/context";
 import type { ManualSections } from "./types/manual";
 import type { Seed } from "./data/seeds";
-import { TRIALS } from "./data/trials";
+import { DEFAULT_ANIMALS, completeAnimalSet, type Animal } from "./data/animals";
+import { createAnimalTrials } from "./data/trials";
 import { computeProfile } from "./scoring/computeProfile";
-import { playClip, stopClip } from "./task/audio";
+import { stopClip } from "./task/audio";
 import Start from "./screens/Start";
 import Handoff from "./screens/Handoff";
 import Task from "./screens/Task";
@@ -22,10 +23,12 @@ export default function App() {
   const [observation, setObservation] = useState("");
   const [profile, setProfile] = useState<Profile | null>(null);
   const [seedManual, setSeedManual] = useState<ManualSections | null>(null);
+  const [animals, setAnimals] = useState<Animal[]>(DEFAULT_ANIMALS);
+  const trials = createAnimalTrials(animals);
 
-  function begin(code: string, answers: Intake, context: Context) {
-    // started inside the tap, so the phone allows sound for the rest of the session
-    playClip("audio/ui/handoff.mp3");
+  function begin(code: string, answers: Intake, context: Context, favoriteIds: string[]) {
+    const selectedAnimals = completeAnimalSet(favoriteIds);
+    setAnimals(selectedAnimals);
     setChildCode(code);
     setIntake(answers);
     setSituations(context);
@@ -33,7 +36,7 @@ export default function App() {
   }
 
   function finishTask(session: Session) {
-    setProfile(computeProfile(session, TRIALS));
+    setProfile(computeProfile(session, trials));
     setSeedManual(null);
     setScreen("return");
   }
@@ -44,7 +47,8 @@ export default function App() {
   }
 
   function showDemo(seed: Seed) {
-    setProfile(computeProfile(seed.session, TRIALS));
+    setAnimals(DEFAULT_ANIMALS);
+    setProfile(computeProfile(seed.session, createAnimalTrials(DEFAULT_ANIMALS)));
     setSeedManual(seed.manual);
     setScreen("manual");
   }
@@ -57,12 +61,23 @@ export default function App() {
     setSituations(NO_CONTEXT);
     setObservation("");
     setIntake({ redFlag: false, homeLanguageNotSpanish: false });
+    setAnimals(DEFAULT_ANIMALS);
     setScreen("start");
   }
 
   if (screen === "handoff") return <Handoff onBegin={() => setScreen("task")} />;
-  if (screen === "task") return <Task childCode={childCode} intake={intake} onFinish={finishTask} />;
+  if (screen === "task") return <Task childCode={childCode} intake={intake} animals={animals} onFinish={finishTask} />;
   if (screen === "return") return <Return onContinue={continueToManual} />;
-  if (screen === "manual" && profile) return <Manual profile={profile} seedManual={seedManual} situations={situations} observation={observation} onRestart={restart} />;
+  if (screen === "manual" && profile)
+    return (
+      <Manual
+        profile={profile}
+        seedManual={seedManual}
+        situations={situations}
+        observation={observation}
+        trials={seedManual ? createAnimalTrials(DEFAULT_ANIMALS) : trials}
+        onRestart={restart}
+      />
+    );
   return <Start onBegin={begin} onDemo={showDemo} />;
 }

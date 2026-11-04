@@ -64,7 +64,7 @@ export const VALIDITY_NOTICES: Partial<Record<Flag, string>> = {
   distress_stop:
     "La sesión se detuvo porque la niña o el niño estaba molesto o se negó a continuar. No se calificó nada y no se proponen estrategias. Pueden intentarlo otro día, en un momento tranquilo, o consultar a una persona especialista.",
   vocab_check_failed:
-    "Aviso de validez: en el calentamiento, la niña o el niño no identificó con seguridad los colores o las formas. Por eso, este resultado refleja sobre todo si conoce esas palabras, no su memoria para seguir instrucciones. Antes de probar estrategias, conviene revisar ese vocabulario y, si no mejora, la audición y el lenguaje.",
+    "Aviso de validez: en el calentamiento, la niña o el niño no identificó con seguridad algunos animales o colores. Por eso, este resultado refleja sobre todo si conoce esas palabras, no cómo sigue instrucciones. Antes de probar estrategias, conviene revisar ese vocabulario y, si no mejora, la audición y el lenguaje.",
   baseline_failed:
     "Aviso de validez: no completó las instrucciones más sencillas, de un solo paso. Esto puede tener que ver con la audición, la atención o la comprensión, más que con la longitud de las instrucciones, y es lo primero que conviene revisar.",
   most_failed:

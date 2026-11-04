@@ -1,23 +1,20 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Intake, Session, TrialResult } from "../types/profile";
-import { VOCAB_ITEMS } from "../data/vocabCheck";
-import { TRIALS } from "../data/trials";
+import type { Animal } from "../data/animals";
+import { createVocabItems } from "../data/vocabCheck";
+import { createAnimalTrials } from "../data/trials";
 import { classifySelection, classifyTrial } from "../scoring/computeProfile";
 import { appendResult, markDistress, recordVocabCheck, startSession } from "../task/session";
-import { playClip, stopClip } from "../task/audio";
+import { stopClip } from "../task/audio";
 import TapSurface from "../task/TapSurface";
 import TrialRunner from "../task/TrialRunner";
 
 const GAP_MS = 900;
 
-const STEPS = [
-  ...VOCAB_ITEMS.map((item) => ({ ...item, kind: "vocab" as const })),
-  ...TRIALS.map((trial) => ({ ...trial, kind: "trial" as const })),
-];
-
 interface Props {
   childCode: string;
   intake: Intake;
+  animals: Animal[];
   onFinish: (session: Session) => void;
 }
 
@@ -49,9 +46,16 @@ function useWakeLock() {
 }
 
 // this connects the warm-up and the twelve trials to the trial runner, one after another
-export default function Task({ childCode, intake, onFinish }: Props) {
+export default function Task({ childCode, intake, animals, onFinish }: Props) {
   const [stepIndex, setStepIndex] = useState(0);
-  const [running, setRunning] = useState(false);
+  const [running, setRunning] = useState(true);
+  const steps = useMemo(
+    () => [
+      ...createVocabItems(animals).map((item) => ({ ...item, kind: "vocab" as const })),
+      ...createAnimalTrials(animals).map((trial) => ({ ...trial, kind: "trial" as const })),
+    ],
+    [animals],
+  );
   const session = useRef(startSession(childCode, intake));
   const vocabCorrect = useRef<boolean[]>([]);
   const gapTimer = useRef<number | undefined>(undefined);
@@ -60,18 +64,13 @@ export default function Task({ childCode, intake, onFinish }: Props) {
   useWakeLock();
 
   useEffect(() => {
-    let cancelled = false;
-    playClip("audio/ui/intro.mp3").then(() => {
-      if (!cancelled) setRunning(true);
-    });
     return () => {
-      cancelled = true;
       window.clearTimeout(gapTimer.current);
       stopClip();
     };
   }, []);
 
-  const step = STEPS[stepIndex];
+  const step = steps[stepIndex];
 
   function handleDone(result: TrialResult) {
     if (step.kind === "vocab") {
@@ -79,7 +78,7 @@ export default function Task({ childCode, intake, onFinish }: Props) {
         ? classifySelection(result.finalSelection, step.expected)
         : classifyTrial(result.taps, step.expected);
       vocabCorrect.current.push(outcome === "correct");
-      if (vocabCorrect.current.length === VOCAB_ITEMS.length) {
+      if (vocabCorrect.current.length === createVocabItems(animals).length) {
         session.current = recordVocabCheck(session.current, vocabCorrect.current.every(Boolean));
       }
     } else {
@@ -87,7 +86,7 @@ export default function Task({ childCode, intake, onFinish }: Props) {
     }
 
     setRunning(false);
-    if (stepIndex + 1 >= STEPS.length) {
+    if (stepIndex + 1 >= steps.length) {
       finish();
       return;
     }
@@ -111,7 +110,7 @@ export default function Task({ childCode, intake, onFinish }: Props) {
     finish();
   }
 
-  const progress = (stepIndex + (running ? 0 : 1)) / STEPS.length;
+  const progress = (stepIndex + (running ? 0 : 1)) / steps.length;
 
   return (
     <main className="flex h-dvh flex-col overflow-hidden">
@@ -132,14 +131,16 @@ export default function Task({ childCode, intake, onFinish }: Props) {
         <TrialRunner
           key={step.id}
           id={step.id}
-          audioFile={step.audioFile}
+          instruction={step.text}
+          audioClips={step.audioClips}
           expected={step.expected}
-          isLast={stepIndex + 1 >= STEPS.length}
+          animals={animals}
+          isLast={stepIndex + 1 >= steps.length}
           onDone={handleDone}
         />
       ) : (
         <>
-          <TapSurface onTap={() => {}} selectedIds={[]} />
+          <TapSurface onTap={() => {}} selectedIds={[]} animals={animals} />
           <div className="h-24 shrink-0 pb-[env(safe-area-inset-bottom)]" />
         </>
       )}
