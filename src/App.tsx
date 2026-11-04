@@ -1,10 +1,11 @@
 import { useState } from "react";
-import type { Intake, Profile, Session } from "./types/profile";
+import type { Intake, Observations, Profile, Session } from "./types/profile";
 import { NO_CONTEXT, type Context } from "./generation/context";
 import type { ManualSections } from "./types/manual";
 import type { Seed } from "./data/seeds";
 import { TRIALS } from "./data/trials";
 import { computeProfile } from "./scoring/computeProfile";
+import { withObservations } from "./scoring/withObservations";
 import { playClip, stopClip } from "./task/audio";
 import Start from "./screens/Start";
 import Handoff from "./screens/Handoff";
@@ -37,6 +38,11 @@ export default function App() {
     setScreen("return");
   }
 
+  function continueToManual(observations: Observations) {
+    setProfile((current) => (current ? withObservations(current, observations) : current));
+    setScreen("manual");
+  }
+
   function showDemo(seed: Seed) {
     setProfile(computeProfile(seed.session, TRIALS));
     setSeedManual(seed.manual);
@@ -55,7 +61,7 @@ export default function App() {
 
   if (screen === "handoff") return <Handoff onBegin={() => setScreen("task")} />;
   if (screen === "task") return <Task childCode={childCode} intake={intake} onFinish={finishTask} />;
-  if (screen === "return") return <Return onContinue={() => setScreen("manual")} />;
+  if (screen === "return") return <Return onContinue={continueToManual} />;
   if (screen === "manual" && profile) return <Manual profile={profile} seedManual={seedManual} situations={situations} onRestart={restart} />;
   return <Start onBegin={begin} onDemo={showDemo} />;
 }
