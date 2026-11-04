@@ -1,5 +1,6 @@
 import type { Session, TrialResult } from "../types/profile";
 import type { ManualSections } from "../types/manual";
+import { REFERRAL_SECTIONS } from "../generation/generateManual";
 
 export interface Seed {
   id: string;
@@ -22,8 +23,33 @@ function trial(
 }
 
 function session(sessionId: string, childCode: string, results: TrialResult[]): Session {
-  return { sessionId, childCode, grade: 1, startedAt: "2026-11-02T09:00:00.000Z", vocabCheckPassed: true, results };
+  return {
+    sessionId,
+    childCode,
+    grade: 1,
+    startedAt: "2026-11-02T09:00:00.000Z",
+    vocabCheckPassed: true,
+    results,
+    redFlag: false,
+    homeLanguageNotSpanish: false,
+    stoppedForDistress: false,
+  };
 }
+
+const referralSession = session("seed-c", "DEMO-C", [
+  trial("t01", [["b-s", 2600]], { replayed: true }),
+  trial("t02", [["r-s", 2800]], { replayed: true }),
+  trial("t03", [["r-c", 2500], ["y-c", 3600]], { replayed: true }),
+  trial("t04", [["b-c", 2400], ["b-s", 3500]], { replayed: true }),
+  trial("t05", [["r-s", 2600], ["r-c", 3700]], { replayed: true }),
+  trial("t06", [["y-s", 2500], ["y-c", 3500]], { replayed: true }),
+  trial("t07", [["b-c", 2300], ["b-s", 3300]], { replayed: true }),
+  trial("t08", [["y-c", 2500], ["r-s", 3500], ["b-c", 4500]], { replayed: true }),
+  trial("t09", [["r-c", 2600], ["y-c", 3600], ["b-s", 4600]]),
+  trial("t10", [["y-s", 2400], ["b-s", 3400], ["r-c", 4400]]),
+  trial("t11", [["b-s", 2700]]),
+  trial("t12", [["y-s", 2900]]),
+]);
 
 // span of two, keeps the order, asks to hear the instruction again
 const askerSession = session("seed-a", "DEMO-A", [
@@ -116,5 +142,11 @@ export const SEEDS: Seed[] = [
           "Hace los pasos en el orden en que los mostraste. Toma el objeto correcto sin que tengas que señalarlo otra vez, y responde a la primera instrucción sin que tengas que repetirla.",
       },
     },
+  },
+  {
+    id: "seed-c",
+    label: "Ejemplo C: primero revisar audición y lenguaje",
+    session: referralSession,
+    manual: REFERRAL_SECTIONS,
   },
 ];

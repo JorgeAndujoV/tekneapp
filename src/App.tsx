@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { Profile, Session } from "./types/profile";
+import type { Intake, Profile, Session } from "./types/profile";
 import type { ManualSections } from "./types/manual";
 import type { Seed } from "./data/seeds";
 import { TRIALS } from "./data/trials";
@@ -16,13 +16,15 @@ type Screen = "start" | "handoff" | "task" | "return" | "manual";
 export default function App() {
   const [screen, setScreen] = useState<Screen>("start");
   const [childCode, setChildCode] = useState("");
+  const [intake, setIntake] = useState<Intake>({ redFlag: false, homeLanguageNotSpanish: false });
   const [profile, setProfile] = useState<Profile | null>(null);
   const [seedManual, setSeedManual] = useState<ManualSections | null>(null);
 
-  function begin(code: string) {
+  function begin(code: string, answers: Intake) {
     // started inside the tap, so the phone allows sound for the rest of the session
     playClip("audio/ui/handoff.mp3");
     setChildCode(code);
+    setIntake(answers);
     setScreen("handoff");
   }
 
@@ -43,11 +45,12 @@ export default function App() {
     setProfile(null);
     setSeedManual(null);
     setChildCode("");
+    setIntake({ redFlag: false, homeLanguageNotSpanish: false });
     setScreen("start");
   }
 
   if (screen === "handoff") return <Handoff onBegin={() => setScreen("task")} />;
-  if (screen === "task") return <Task childCode={childCode} onFinish={finishTask} />;
+  if (screen === "task") return <Task childCode={childCode} intake={intake} onFinish={finishTask} />;
   if (screen === "return") return <Return onContinue={() => setScreen("manual")} />;
   if (screen === "manual" && profile) return <Manual profile={profile} seedManual={seedManual} onRestart={restart} />;
   return <Start onBegin={begin} onDemo={showDemo} />;

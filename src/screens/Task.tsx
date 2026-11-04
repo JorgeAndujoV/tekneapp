@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import type { Session, TrialResult } from "../types/profile";
+import type { Intake, Session, TrialResult } from "../types/profile";
 import { VOCAB_ITEMS } from "../data/vocabCheck";
 import { TRIALS } from "../data/trials";
 import { classifyTrial } from "../scoring/computeProfile";
-import { appendResult, recordVocabCheck, startSession } from "../task/session";
+import { appendResult, markDistress, recordVocabCheck, startSession } from "../task/session";
 import { playClip, stopClip } from "../task/audio";
 import TapSurface from "../task/TapSurface";
 import TrialRunner, { ReplayButton } from "../task/TrialRunner";
@@ -17,6 +17,7 @@ const STEPS = [
 
 interface Props {
   childCode: string;
+  intake: Intake;
   onFinish: (session: Session) => void;
 }
 
@@ -48,10 +49,10 @@ function useWakeLock() {
 }
 
 // this connects the warm-up and the twelve trials to the trial runner, one after another
-export default function Task({ childCode, onFinish }: Props) {
+export default function Task({ childCode, intake, onFinish }: Props) {
   const [stepIndex, setStepIndex] = useState(0);
   const [running, setRunning] = useState(false);
-  const session = useRef(startSession(childCode));
+  const session = useRef(startSession(childCode, intake));
   const vocabCorrect = useRef<boolean[]>([]);
   const gapTimer = useRef<number | undefined>(undefined);
   const done = useRef(false);
@@ -100,9 +101,10 @@ export default function Task({ childCode, onFinish }: Props) {
     onFinish(session.current);
   }
 
-  function endNow() {
+  function endNow(distress = false) {
     window.clearTimeout(gapTimer.current);
     stopClip();
+    if (distress) session.current = markDistress(session.current);
     finish();
   }
 
@@ -114,9 +116,14 @@ export default function Task({ childCode, onFinish }: Props) {
         <div className="h-2 flex-1 overflow-hidden rounded-full bg-line" aria-hidden="true">
           <div className="h-full rounded-full bg-muted/60 transition-[width] duration-500" style={{ width: `${progress * 100}%` }} />
         </div>
-        <button type="button" onClick={endNow} className="shrink-0 text-sm text-muted underline">
-          Terminar ahora
-        </button>
+        <div className="flex shrink-0 flex-col items-end gap-1">
+          <button type="button" onClick={() => endNow()} className="text-sm text-muted underline">
+            Terminar ahora
+          </button>
+          <button type="button" onClick={() => endNow(true)} className="text-sm text-muted underline">
+            Se molestó o no quiere seguir
+          </button>
+        </div>
       </div>
       {running ? (
         <TrialRunner

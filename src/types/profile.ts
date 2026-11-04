@@ -65,6 +65,14 @@ export interface Session {
   startedAt: string; // ISO
   vocabCheckPassed: boolean;
   results: TrialResult[];
+  redFlag: boolean;
+  homeLanguageNotSpanish: boolean;
+  stoppedForDistress: boolean;
+}
+
+export interface Intake {
+  redFlag: boolean;
+  homeLanguageNotSpanish: boolean;
 }
 
 /**
@@ -142,10 +150,25 @@ export interface Descriptors {
 
 /** Deterministic. Set by rule, never by the model. */
 export type Flag =
+  | "red_flag"
+  | "distress_stop"
   | "vocab_check_failed" // scored vocabulary, not memory — say so in the manual
   | "baseline_failed" // missed 1-action trials: hearing, attention or comprehension
+  | "most_failed"
+  | "replays_often"
+  | "many_no_response"
   | "session_abandoned"
+  | "home_language"
   | "priority_referral"; // any of the above: this result cannot be read at face value
+
+export const REFERRAL_FIRST: Flag[] = [
+  "distress_stop",
+  "vocab_check_failed",
+  "baseline_failed",
+  "most_failed",
+  "replays_often",
+  "many_no_response",
+];
 
 export type Reliability =
   | "ok" // >= 10 trials attempted

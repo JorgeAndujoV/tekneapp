@@ -1,4 +1,4 @@
-import { promptView, type Profile } from "../types/profile";
+import { promptView, REFERRAL_FIRST, type Profile } from "../types/profile";
 import type { ManualSections, ManualVersion, RailedManual } from "../types/manual";
 import { matchStrategies } from "./matchStrategies";
 import { buildPrompt } from "./buildPrompt";
@@ -19,6 +19,21 @@ export const INSUFFICIENT_SECTIONS: ManualSections = {
     observed: "La sesión fue demasiado corta para describir cómo sigue instrucciones habladas.",
     toTry:
       "Por ahora no recomendamos estrategias: con tan pocas respuestas, cualquier recomendación sería una suposición. Si es posible, repitan la tarea otro día, en un momento tranquilo.",
+    watchFor:
+      "En casa, anoten ejemplos concretos de instrucciones que sigue sin problema y de las que no, para compartirlos con un profesional.",
+  },
+};
+
+export const REFERRAL_SECTIONS: ManualSections = {
+  classroom: {
+    observed: "En esta ocasión no se describe cómo sigue instrucciones.",
+    toTry: "Por ahora no proponemos estrategias. Primero sigan la recomendación del aviso de arriba.",
+    watchFor:
+      "En clase, anoten ejemplos concretos de instrucciones que sigue sin problema y de las que no, para compartirlos con un profesional.",
+  },
+  home: {
+    observed: "En esta ocasión no se describe cómo sigue instrucciones.",
+    toTry: "Por ahora no proponemos estrategias. Primero sigan la recomendación del aviso de arriba.",
     watchFor:
       "En casa, anoten ejemplos concretos de instrucciones que sigue sin problema y de las que no, para compartirlos con un profesional.",
   },
@@ -82,6 +97,8 @@ export function parseSections(text: string): ManualSections {
 
 // this is the one network call in the app
 export async function generateManual(profile: Profile): Promise<RailedManual> {
+  if (REFERRAL_FIRST.some((flag) => profile.flags.includes(flag))) return applyRails(REFERRAL_SECTIONS, profile.flags);
+
   const strategies = matchStrategies(profile);
   if (strategies.length === 0) return applyRails(INSUFFICIENT_SECTIONS, profile.flags);
 

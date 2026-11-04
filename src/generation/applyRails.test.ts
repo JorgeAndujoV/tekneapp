@@ -9,6 +9,20 @@ function sections(observed: string): ManualSections {
   };
 }
 
+describe("applyRails — notices and closing", () => {
+  it("puts the red-flag notice first and asks for priority attention", () => {
+    const result = applyRails(sections("Texto."), ["red_flag", "vocab_check_failed", "priority_referral"]);
+    expect(result.notices[0]).toContain("atención profesional pronto");
+    expect(result.closing).toContain("Den prioridad");
+  });
+
+  it("adds a caution for a home language other than Spanish without asking for priority attention", () => {
+    const result = applyRails(sections("Texto."), ["home_language"]);
+    expect(result.notices).toHaveLength(1);
+    expect(result.closing).not.toContain("Den prioridad");
+  });
+});
+
 describe("applyRails — stripScores", () => {
   it("removes the whole sentence that carries a score, keeping the sentence next to it intact", () => {
     const result = applyRails(

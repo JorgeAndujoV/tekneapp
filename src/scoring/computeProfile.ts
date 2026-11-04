@@ -14,6 +14,10 @@ import type {
 } from "../types/profile";
 import { assessReliability, describe, DOMINANT_MIN_TRIALS, ERROR_CODES, SEVERITY } from "../types/profile";
 
+const MOST_FAILED_BELOW = 0.5;
+const REPLAYS_OFTEN_ABOVE = 0.5;
+const NO_RESPONSE_FROM = 1 / 3;
+
 const DIMENSIONS: Dimension[] = ["baseline", "twoActions", "reversed", "threeActions", "negation"];
 
 // span is read only from the plain sequencing ladder; reversed and negation trials are separate questions
@@ -177,11 +181,20 @@ export function computeProfile(session: Session, trials: TrialSpec[]): Profile {
   };
 
   const baseline = scored.filter((s) => s.spec.dimension === "baseline");
+  const share = (count: number) => (scored.length === 0 ? 0 : count / scored.length);
+  const enough = scored.length >= 6;
   const flags: Flag[] = [];
+  if (session.redFlag) flags.push("red_flag");
+  if (session.stoppedForDistress) flags.push("distress_stop");
   if (!session.vocabCheckPassed) flags.push("vocab_check_failed");
   if (baseline.length > 0 && baseline.every((s) => s.outcome !== "correct")) flags.push("baseline_failed");
+  const correctShare = share(scored.filter((s) => s.outcome === "correct").length);
+  if (enough && correctShare < MOST_FAILED_BELOW && baseline.some((s) => s.outcome !== "correct")) flags.push("most_failed");
+  if (enough && share(measures.replaysRequested) > REPLAYS_OFTEN_ABOVE) flags.push("replays_often");
+  if (enough && share(codeCounts.E8) >= NO_RESPONSE_FROM) flags.push("many_no_response");
   if (measures.trialsAttempted < 6) flags.push("session_abandoned");
-  if (flags.length > 0) flags.push("priority_referral");
+  if (session.homeLanguageNotSpanish) flags.push("home_language");
+  if (flags.some((flag) => flag !== "home_language")) flags.push("priority_referral");
 
   return {
     schemaVersion: 2,
