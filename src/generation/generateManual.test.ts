@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { FIXTURE_TYPICAL_WITH_SHORT_SPAN, type Flag } from "../types/profile";
-import { generateManual, parseSections } from "./generateManual";
+import { generateManual, parseSections, strategiesFor } from "./generateManual";
 
 const VALID = {
   classroom: { observed: "a", toTry: "b", watchFor: "c" },
@@ -79,5 +79,12 @@ describe("generateManual", () => {
     expect(manual.sections.classroom.toTry).toBe(modelSections.classroom.toTry);
     expect(manual.sections.home.observed).toBe(modelSections.home.observed);
     expect(manual.sections.home.toTry).toBe(modelSections.home.toTry);
+  });
+});
+
+describe("strategiesFor", () => {
+  it("returns strategies for a normal profile and none when a referral comes first", () => {
+    expect(strategiesFor(FIXTURE_TYPICAL_WITH_SHORT_SPAN).length).toBeGreaterThan(0);
+    expect(strategiesFor({ ...FIXTURE_TYPICAL_WITH_SHORT_SPAN, flags: ["replays_often", "priority_referral"] })).toEqual([]);
   });
 });

@@ -1,5 +1,5 @@
 import { promptView, REFERRAL_FIRST, type Profile } from "../types/profile";
-import type { ManualSections, ManualVersion, RailedManual } from "../types/manual";
+import type { ManualSections, ManualVersion, RailedManual, Strategy } from "../types/manual";
 import { matchStrategies } from "./matchStrategies";
 import { buildPrompt } from "./buildPrompt";
 import { applyRails } from "./applyRails";
@@ -121,4 +121,8 @@ export async function generateManual(profile: Profile): Promise<RailedManual> {
   if (typeof data?.text !== "string") throw new GenerationError("El servidor devolvió una respuesta vacía.");
 
   return applyRails(parseSections(data.text), profile.flags);
+}
+
+export function strategiesFor(profile: Profile): Strategy[] {
+  return REFERRAL_FIRST.some((flag) => profile.flags.includes(flag)) ? [] : matchStrategies(profile);
 }

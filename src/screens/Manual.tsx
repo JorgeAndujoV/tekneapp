@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import type { Profile } from "../types/profile";
-import type { ManualSections, ManualVersion, RailedManual } from "../types/manual";
+import type { ManualSections, ManualVersion, RailedManual, Strategy } from "../types/manual";
 import { TRIALS } from "../data/trials";
 import { applyRails } from "../generation/applyRails";
-import { GenerationError, generateManual } from "../generation/generateManual";
+import { GenerationError, generateManual, strategiesFor } from "../generation/generateManual";
 
 type Version = "classroom" | "home";
 
@@ -54,6 +54,7 @@ export default function Manual({ profile, seedManual, onRestart }: Props) {
 
   const date = new Date().toLocaleDateString("es-MX", { day: "numeric", month: "long", year: "numeric" });
   const isDemo = seedManual !== null;
+  const evidence = strategiesFor(profile);
 
   return (
     <main className="mx-auto max-w-2xl px-5 py-8 print:max-w-none print:p-0 print:text-[10.5pt]">
@@ -103,6 +104,8 @@ export default function Manual({ profile, seedManual, onRestart }: Props) {
             label={VERSION_LABEL[v]}
             content={state.manual.sections[v]}
             notices={state.manual.notices}
+            limits={state.manual.limits}
+            evidence={evidence}
             closing={state.manual.closing}
             childCode={profile.childCode}
             date={date}
@@ -132,6 +135,8 @@ interface PageProps {
   label: string;
   content: ManualVersion;
   notices: string[];
+  limits: string;
+  evidence: Strategy[];
   closing: string;
   childCode: string;
   date: string;
@@ -141,7 +146,19 @@ interface PageProps {
 }
 
 // each version prints as its own page, so the classroom and home copies can be handed out separately
-function VersionPage({ label, content, notices, closing, childCode, date, isDemo, visible, breakAfter }: PageProps) {
+function VersionPage({
+  label,
+  content,
+  notices,
+  limits,
+  evidence,
+  closing,
+  childCode,
+  date,
+  isDemo,
+  visible,
+  breakAfter,
+}: PageProps) {
   return (
     <article
       className={`flex-col gap-6 print:flex print:gap-4 ${visible ? "flex" : "hidden"} ${
@@ -159,7 +176,7 @@ function VersionPage({ label, content, notices, closing, childCode, date, isDemo
       </header>
 
       {notices.map((notice) => (
-        <p key={notice} className="rounded-xl border-l-4 border-amber-600 bg-amber-50 p-4 text-lg leading-relaxed print:p-3 print:text-[10.5pt]">
+        <p key={notice} className="rounded-2xl border-2 border-line bg-white p-4 text-lg leading-relaxed print:p-3 print:text-[10.5pt]">
           {notice}
         </p>
       ))}
@@ -167,6 +184,20 @@ function VersionPage({ label, content, notices, closing, childCode, date, isDemo
       <Section title="Lo que observamos" text={content.observed} />
       <Section title="Qué probar" text={content.toTry} />
       <Section title="A qué estar atentos" text={content.watchFor} />
+      <Section title="Lo que esta tarea no puede decir" text={limits} />
+
+      {evidence.length > 0 && (
+        <section className="text-base leading-relaxed print:text-[9.5pt] print:leading-snug">
+          <h2 className="mb-2 text-xl font-semibold print:mb-1 print:text-[11pt]">Sobre las estrategias</h2>
+          <ul className="list-disc space-y-1 pl-6">
+            {evidence.map((strategy) => (
+              <li key={strategy.id}>
+                <span className="font-medium">{strategy.title}.</span> {strategy.evidenceNote} Fuente: {strategy.source}.
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <footer className="border-t-2 border-line pt-4 text-base leading-relaxed print:pt-3 print:text-[9.5pt]">
         {closing}

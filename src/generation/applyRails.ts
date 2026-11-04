@@ -26,7 +26,15 @@ export const BLOCKED_TERMS = [
   "trastorno",
   "diagnostico",
   "diagnosticar",
+  "tamizaje",
+  "screening",
+  "deteccion temprana",
+  "riesgo",
+  "monitoreo",
 ];
+
+export const LIMITS =
+  "Cuando a una niña o a un niño le cuesta seguir instrucciones, puede haber varias razones que esta tarea no separa: la audición, el lenguaje, el ruido del lugar o la memoria. Por eso este manual solo describe lo que hizo. Conviene revisar la audición si mira la boca de quien habla o gira la cabeza para escuchar, si pide que le repitan casi siempre, o si en el salón o en casa responde mucho peor que en esta tarea tranquila. También influye el idioma que se habla en casa.";
 
 export const VALIDITY_NOTICES: Partial<Record<Flag, string>> = {
   red_flag:
@@ -50,7 +58,7 @@ export const VALIDITY_NOTICES: Partial<Record<Flag, string>> = {
 };
 
 const CLOSING_BASE =
-  "Este manual no es un diagnóstico. Describe lo que una niña o un niño hizo en una tarea corta, en un solo día, y no dice nada sobre la causa.";
+  "Este manual no es un diagnóstico. Describe lo que una niña o un niño hizo en una tarea corta, en un solo día, y no dice nada sobre la causa. Es un apoyo educativo para personas adultas: no sirve para diagnosticar, detectar trastornos ni tomar decisiones clínicas.";
 
 const CLOSING_CONSIDER =
   "Una evaluación profesional (por ejemplo, en psicología, comunicación humana o neuropediatría) es el siguiente paso adecuado siempre que esté a su alcance. Consideren buscarla.";
@@ -147,6 +155,7 @@ export function applyRails(sections: ManualSections, flags: Flag[]): RailedManua
   return {
     notices,
     sections: { classroom: railVersion(sections.classroom), home: railVersion(sections.home) },
+    limits: LIMITS,
     closing: `${CLOSING_BASE} ${flags.includes("priority_referral") ? CLOSING_PRIORITIZE : CLOSING_CONSIDER}`,
   };
 }

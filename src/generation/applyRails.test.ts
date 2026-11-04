@@ -49,3 +49,19 @@ describe("applyRails — stripScores", () => {
     expect(result.sections.classroom.observed).toContain("Responde bien a instrucciones cortas.");
   });
 });
+
+describe("applyRails — fixed manual text", () => {
+  it("always includes the limits block and the intended-use statement", () => {
+    const result = applyRails(sections("Texto."), []);
+    expect(result.limits).toContain("audición");
+    expect(result.closing).toContain("apoyo educativo");
+  });
+
+  it("removes sentences that use screening or risk words", () => {
+    const result = applyRails(
+      sections("Es un tamizaje de riesgo. Hace los pasos con calma. Sirve para la detección temprana."),
+      [],
+    );
+    expect(result.sections.classroom.observed).toBe("Hace los pasos con calma.");
+  });
+});

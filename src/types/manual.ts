@@ -34,5 +34,6 @@ export interface ManualSections {
 export interface RailedManual {
   notices: string[];
   sections: ManualSections;
+  limits: string;
   closing: string;
 }
