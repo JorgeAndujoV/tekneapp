@@ -28,7 +28,7 @@ interface Props {
 export default function Manual({ profile, seedManual, situations, onRestart }: Props) {
   // a seeded demo renders its pre-written manual straight away, with no network call
   const [state, setState] = useState<State>(() =>
-    seedManual ? { status: "ready", manual: applyRails(seedManual, profile.flags) } : { status: "loading" },
+    seedManual ? { status: "ready", manual: applyRails(seedManual, profile.flags, strategiesFor(profile)) } : { status: "loading" },
   );
   const [version, setVersion] = useState<Version>("classroom");
   const attempt = useRef(0);
@@ -56,7 +56,6 @@ export default function Manual({ profile, seedManual, situations, onRestart }: P
 
   const date = new Date().toLocaleDateString("es-MX", { day: "numeric", month: "long", year: "numeric" });
   const isDemo = seedManual !== null;
-  const evidence = strategiesFor(profile);
 
   return (
     <main className="mx-auto max-w-2xl px-5 py-8 print:max-w-none print:p-0 print:text-[10.5pt]">
@@ -107,7 +106,7 @@ export default function Manual({ profile, seedManual, situations, onRestart }: P
             content={state.manual.sections[v]}
             notices={state.manual.notices}
             limits={state.manual.limits}
-            evidence={evidence}
+            evidence={state.manual.strategies}
             closing={state.manual.closing}
             childCode={profile.childCode}
             date={date}

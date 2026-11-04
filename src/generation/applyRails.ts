@@ -1,5 +1,5 @@
 import type { Flag } from "../types/profile";
-import type { ManualSections, ManualVersion, RailedManual } from "../types/manual";
+import type { ManualSections, ManualVersion, RailedManual, Strategy } from "../types/manual";
 
 // everything in this file is fixed text and fixed rules: the model never writes or changes it
 
@@ -179,12 +179,13 @@ function railVersion(version: ManualVersion): ManualVersion {
   };
 }
 
-export function applyRails(sections: ManualSections, flags: Flag[]): RailedManual {
+export function applyRails(sections: ManualSections, flags: Flag[], strategies: Strategy[] = []): RailedManual {
   const notices = flags.flatMap((flag) => VALIDITY_NOTICES[flag] ?? []);
   return {
     notices,
     sections: { classroom: railVersion(sections.classroom), home: railVersion(sections.home) },
     limits: LIMITS,
+    strategies,
     closing: `${CLOSING_BASE} ${flags.includes("priority_referral") ? CLOSING_PRIORITIZE : CLOSING_CONSIDER}`,
   };
 }

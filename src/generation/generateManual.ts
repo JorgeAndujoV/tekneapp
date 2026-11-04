@@ -1,10 +1,10 @@
 import { promptView, REFERRAL_FIRST, type Profile } from "../types/profile";
 import type { ManualSections, RailedManual, Strategy } from "../types/manual";
-import { matchStrategies } from "./matchStrategies";
+import { candidatesFor, matchStrategies, selectStrategies } from "./matchStrategies";
 import { withStrategies, type Examples } from "./strategyText";
 import { buildPrompt } from "./buildPrompt";
 import { applyRails, survivesRails } from "./applyRails";
-import { finalContext, NO_CONTEXT, type Context } from "./context";
+import { finalContext, hasContext, NO_CONTEXT, type Context } from "./context";
 
 const MAX_EXAMPLE_LENGTH = 240;
 
@@ -54,12 +54,14 @@ function asText(value: unknown): string | null {
 interface Reply {
   observed: { classroom: string; home: string };
   toTry: { classroom: string; home: string };
+  watchFor: { classroom: string; home: string };
 }
 
-function parseVersion(value: unknown): { observed: string; toTry: string } | null {
+function parseVersion(value: unknown): { observed: string; toTry: string; watchFor: string } | null {
   const v = value as Record<string, unknown> | null;
   const observed = asText(v?.observed);
-  return observed ? { observed, toTry: typeof v?.toTry === "string" ? v.toTry : "" } : null;
+  const text = (field: unknown) => (typeof field === "string" ? field : "");
+  return observed ? { observed, toTry: text(v?.toTry), watchFor: text(v?.watchFor) } : null;
 }
 
 // returns the substring from `start` to its matching "}", or null if braces never balance;
@@ -99,6 +101,7 @@ export function parseReply(text: string): Reply {
           return {
             observed: { classroom: classroom.observed, home: home.observed },
             toTry: { classroom: classroom.toTry, home: home.toTry },
+            watchFor: { classroom: classroom.watchFor, home: home.watchFor },
           };
         }
       } catch {}
@@ -121,14 +124,21 @@ export function adaptedExamples(toTry: string, strategies: Strategy[], hasSituat
   return found;
 }
 
+export function chosenStrategies(watchFor: string, candidates: Strategy[]): Strategy[] {
+  const letters = watchFor.match(/[A-Z]/g) ?? [];
+  const chosen = letters.flatMap((letter) => candidates[letter.charCodeAt(0) - 65] ?? []);
+  return chosen.filter((strategy, i) => chosen.indexOf(strategy) === i);
+}
+
 export async function generateManual(profile: Profile, situations: Context = NO_CONTEXT): Promise<RailedManual> {
   if (REFERRAL_FIRST.some((flag) => profile.flags.includes(flag))) return applyRails(REFERRAL_SECTIONS, profile.flags);
 
-  const strategies = matchStrategies(profile);
-  if (strategies.length === 0) return applyRails(INSUFFICIENT_SECTIONS, profile.flags);
+  const matched = matchStrategies(profile);
+  if (matched.length === 0) return applyRails(INSUFFICIENT_SECTIONS, profile.flags);
 
   const context = finalContext(situations);
-  const messages = buildPrompt(promptView(profile), strategies, context);
+  const candidates = hasContext(context) ? candidatesFor(profile) : matched;
+  const messages = buildPrompt(promptView(profile), candidates, context);
 
   let response: Response;
   try {
@@ -148,10 +158,13 @@ export async function generateManual(profile: Profile, situations: Context = NO_
 
   const reply = parseReply(data.text);
   const examples: Examples = {
-    classroom: adaptedExamples(reply.toTry.classroom, strategies, context.classroom !== ""),
-    home: adaptedExamples(reply.toTry.home, strategies, context.home !== ""),
+    classroom: adaptedExamples(reply.toTry.classroom, candidates, context.classroom !== ""),
+    home: adaptedExamples(reply.toTry.home, candidates, context.home !== ""),
   };
-  return applyRails(withStrategies(reply.observed, strategies, examples), profile.flags);
+  const shown = hasContext(context)
+    ? selectStrategies(profile, chosenStrategies(reply.watchFor.classroom || reply.watchFor.home, candidates))
+    : matched;
+  return applyRails(withStrategies(reply.observed, shown, examples), profile.flags, shown);
 }
 
 export function strategiesFor(profile: Profile): Strategy[] {

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { adaptedExamples, generateManual, parseReply } from "./generateManual";
-import { matchStrategies, STRATEGIES } from "./matchStrategies";
+import { adaptedExamples, chosenStrategies, generateManual, parseReply } from "./generateManual";
+import { candidatesFor, matchStrategies, selectStrategies, STRATEGIES } from "./matchStrategies";
 import { buildPrompt } from "./buildPrompt";
 import { cleanContext, CONTEXT_MAX, finalContext, hasContext, NO_CONTEXT } from "./context";
 import { withStrategies } from "./strategyText";
@@ -72,38 +72,89 @@ describe("adapted examples", () => {
   });
 });
 
+const candidates = candidatesFor(FIXTURE_TYPICAL_WITH_SHORT_SPAN);
+
+const reply = (classroom: { toTry: string; watchFor: string }, home = { toTry: "", watchFor: "" }) => ({
+  classroom: { observed: "Siguió bien instrucciones de dos pasos.", ...classroom },
+  home: { observed: "Siguió bien instrucciones de dos pasos.", ...home },
+});
+
+function stubModel(body: object) {
+  const spy = vi.fn().mockResolvedValue(new Response(JSON.stringify({ text: JSON.stringify(body) }), { status: 200 }));
+  vi.stubGlobal("fetch", spy);
+  return spy;
+}
+
 describe("generateManual with situations", () => {
   afterEach(() => vi.unstubAllGlobals());
 
-  it("uses the model's adapted examples only where they are clean, and keeps the library steps", async () => {
-    const reply = {
-      classroom: {
-        observed: "Siguió bien instrucciones de dos pasos.",
-        toTry: "A: Antes de salir al recreo di: Guarda tu pelota.\nB: Esto es para el autismo.",
-        watchFor: "",
-      },
-      home: { observed: "Siguió bien instrucciones de dos pasos.", toTry: "A: No debería usarse.", watchFor: "" },
-    };
-    const fetchSpy = vi
-      .fn()
-      .mockResolvedValue(new Response(JSON.stringify({ text: JSON.stringify(reply) }), { status: 200 }));
-    vi.stubGlobal("fetch", fetchSpy);
+  it("offers the model every strategy that could serve the child, and nothing else", () => {
+    const text = buildPrompt(view, candidates, { classroom: "recreo", home: "" }).map((m) => m.content).join("\n");
+    candidates.forEach((s, i) => expect(text).toContain(`Estrategia ${String.fromCharCode(65 + i)}: ${s.title}`));
+    const outside = STRATEGIES.filter((s) => !candidates.includes(s));
+    for (const s of outside) expect(text).not.toContain(s.title);
+  });
+
+  it("uses the strategy the model prefers when it serves the child's pattern", async () => {
+    const standard = matchStrategies(FIXTURE_TYPICAL_WITH_SHORT_SPAN);
+    const other = candidates.find((s) => !standard.includes(s) && s.codes.includes("E1"))!;
+    const letter = String.fromCharCode(65 + candidates.indexOf(other));
+    stubModel(reply({ toTry: `${letter}: Antes de salir al recreo di: Guarda tu pelota.`, watchFor: letter }));
 
     const manual = await generateManual(FIXTURE_TYPICAL_WITH_SHORT_SPAN, { classroom: "salida al recreo", home: "" });
 
+    expect(manual.strategies[0]).toBe(other);
+    expect(manual.sections.classroom.toTry).toContain(`1. ${other.title}`);
     expect(manual.sections.classroom.toTry).toContain("Ejemplo adaptado a tu situación: Antes de salir al recreo di: Guarda tu pelota.");
-    expect(manual.sections.classroom.toTry).not.toContain("autismo");
-    strategies[0].script.forEach((step, i) => expect(manual.sections.classroom.toTry).toContain(`Paso ${i + 1}: ${step}`));
+    other.script.forEach((step, i) => expect(manual.sections.classroom.toTry).toContain(`Paso ${i + 1}: ${step}`));
     expect(manual.sections.home.toTry).not.toContain("adaptado");
-    expect(manual.sections.home.toTry).not.toContain("No debería usarse");
-    expect(JSON.parse(fetchSpy.mock.calls[0][1].body).messages[1].content).toContain("Aula: salida al recreo");
   });
 
-  it("parses the situation examples from the reply", () => {
-    const text = JSON.stringify({
-      classroom: { observed: "a", toTry: "A: uno", watchFor: "" },
-      home: { observed: "b", toTry: "", watchFor: "" },
-    });
-    expect(parseReply(text).toTry).toEqual({ classroom: "A: uno", home: "" });
+  it("still covers every pattern when the model picks too few strategies", async () => {
+    stubModel(reply({ toTry: "", watchFor: "A" }));
+    const manual = await generateManual(FIXTURE_TYPICAL_WITH_SHORT_SPAN, { classroom: "recreo", home: "" });
+    const standard = matchStrategies(FIXTURE_TYPICAL_WITH_SHORT_SPAN);
+    expect(manual.strategies.length).toBe(standard.length);
+    expect(manual.strategies.some((s) => s.codes.includes("E1"))).toBe(true);
+  });
+
+  it("falls back to the standard strategies when the model names letters that do not exist", async () => {
+    stubModel(reply({ toTry: "", watchFor: "Z, Y" }));
+    const manual = await generateManual(FIXTURE_TYPICAL_WITH_SHORT_SPAN, { classroom: "recreo", home: "" });
+    expect(manual.strategies).toEqual(matchStrategies(FIXTURE_TYPICAL_WITH_SHORT_SPAN));
+  });
+
+  it("drops adapted examples that name a condition and keeps the library text", async () => {
+    stubModel(reply({ toTry: "A: Esto es para el autismo.", watchFor: "A" }));
+    const manual = await generateManual(FIXTURE_TYPICAL_WITH_SHORT_SPAN, { classroom: "recreo", home: "" });
+    expect(manual.sections.classroom.toTry).not.toContain("autismo");
+    expect(manual.sections.classroom.toTry).not.toContain("adaptado");
+  });
+
+  it("sends the situation to the model and ignores the model's choice when there is no situation", async () => {
+    const spy = stubModel(reply({ toTry: "", watchFor: "C" }));
+    const manual = await generateManual(FIXTURE_TYPICAL_WITH_SHORT_SPAN);
+    expect(manual.strategies).toEqual(matchStrategies(FIXTURE_TYPICAL_WITH_SHORT_SPAN));
+    expect(JSON.parse(spy.mock.calls[0][1].body).messages[1].content).not.toContain("Estrategia A");
+  });
+
+  it("reads the chosen letters in order and ignores repeats", () => {
+    expect(chosenStrategies("C, A, C", candidates)).toEqual([candidates[2], candidates[0]]);
+    expect(chosenStrategies("", candidates)).toEqual([]);
+  });
+
+  it("parses the situation examples and the choice from the reply", () => {
+    const text = JSON.stringify(reply({ toTry: "A: uno", watchFor: "A, B" }));
+    const parsed = parseReply(text);
+    expect(parsed.toTry.classroom).toBe("A: uno");
+    expect(parsed.watchFor.classroom).toBe("A, B");
+  });
+});
+
+describe("selecting strategies", () => {
+  it("lets a preference decide among strategies for the same pattern, never the pattern itself", () => {
+    const preferred = candidates.filter((s) => !s.codes.includes("E1"));
+    const chosen = selectStrategies(FIXTURE_TYPICAL_WITH_SHORT_SPAN, preferred);
+    expect(chosen.some((s) => s.codes.includes("E1"))).toBe(true);
   });
 });

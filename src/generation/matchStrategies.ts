@@ -24,7 +24,25 @@ const covers = (strategy: Strategy, code: StrategyCode) => !isUniversal(strategy
 
 const variant = (sessionId: string) => [...sessionId].reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
 
-export function matchStrategies(profile: Profile, strategies: Strategy[] = STRATEGIES): Strategy[] {
+function eligibleFor(code: StrategyCode, strategies: Strategy[], taken: Strategy[]): Strategy[] {
+  const eligible = strategies.filter((strategy) => strategy.codes.includes(code) && !taken.includes(strategy));
+  const specific = eligible.filter((strategy) => !isUniversal(strategy));
+  return specific.length > 0 ? specific : eligible;
+}
+
+export function candidatesFor(profile: Profile, strategies: Strategy[] = STRATEGIES): Strategy[] {
+  if (profile.reliability === "insufficient") return [];
+  const targets = targetCodes(profile);
+  if (targets.length === 0) return strategies.filter(isUniversal).slice(0, 1);
+  const pool = targets.flatMap((code) => eligibleFor(code, strategies, []));
+  return strategies.filter((strategy) => pool.includes(strategy));
+}
+
+export function selectStrategies(
+  profile: Profile,
+  preferred: Strategy[] = [],
+  strategies: Strategy[] = STRATEGIES,
+): Strategy[] {
   if (profile.reliability === "insufficient") return [];
 
   const targets = targetCodes(profile);
@@ -35,10 +53,13 @@ export function matchStrategies(profile: Profile, strategies: Strategy[] = STRAT
   for (const code of targets) {
     if (chosen.length === LIMIT) break;
     if (chosen.some((strategy) => covers(strategy, code))) continue;
-    const eligible = strategies.filter((strategy) => strategy.codes.includes(code) && !chosen.includes(strategy));
-    const specific = eligible.filter((strategy) => !isUniversal(strategy));
-    const options = specific.length > 0 ? specific : eligible;
-    if (options.length > 0) chosen.push(options[offset % options.length]);
+    const options = eligibleFor(code, strategies, chosen);
+    const liked = options.find((strategy) => preferred.includes(strategy));
+    const pick = liked ?? (options.length > 0 ? options[offset % options.length] : undefined);
+    if (pick) chosen.push(pick);
   }
   return chosen;
 }
+
+export const matchStrategies = (profile: Profile, strategies: Strategy[] = STRATEGIES) =>
+  selectStrategies(profile, [], strategies);

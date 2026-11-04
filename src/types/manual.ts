@@ -39,5 +39,6 @@ export interface RailedManual {
   notices: string[];
   sections: ManualSections;
   limits: string;
+  strategies: Strategy[];
   closing: string;
 }

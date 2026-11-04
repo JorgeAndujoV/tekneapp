@@ -7,7 +7,11 @@ const VALID = {
   home: { observed: "d", toTry: "", watchFor: "" },
 };
 
-const PARSED = { observed: { classroom: "a", home: "d" }, toTry: { classroom: "", home: "" } };
+const PARSED = {
+  observed: { classroom: "a", home: "d" },
+  toTry: { classroom: "", home: "" },
+  watchFor: { classroom: "", home: "" },
+};
 
 describe("parseReply", () => {
   it("parses a clean JSON response", () => {
