@@ -51,13 +51,15 @@ export default function Start({ onBegin, onDemo }: Props) {
             ni en una base de datos. Al recargar o cerrar la página se borran. El código aparecerá en el manual impreso.
           </p>
           <p className="mt-2">
-            Para generar el manual, se envían a OpenRouter observaciones resumidas de la actividad, avisos de validez y
-            estrategias. No se envían el código ni los toques individuales. OpenRouter procesa esa solicitud según sus
-            propias condiciones; no ingreses nombres ni otros datos que identifiquen directamente a la niña o al niño.
+            Para generar el manual, se envían al proveedor del modelo de lenguaje observaciones resumidas de la
+            actividad, avisos de validez y estrategias. No se envían el código ni los toques individuales. El
+            proveedor procesa esa solicitud según sus propias condiciones; no ingreses nombres ni otros datos que
+            identifiquen directamente a la niña o al niño.
           </p>
           <p className="mt-2">
-            Si describes una situación del aula o de la casa, ese texto también se envía a OpenRouter para adaptar los
-            ejemplos de las estrategias. No escribas nombres ni diagnósticos. Los números se quitan automáticamente.
+            Si describes una situación del aula o de la casa, o escribes lo que observaste al terminar la actividad,
+            esos textos también se envían al proveedor para personalizar el manual. No escribas nombres ni
+            diagnósticos. Los números se quitan automáticamente.
           </p>
           <p className="mt-2">
             La app no conserva constancia de quién aceptó. Si la escuela necesita guardar un consentimiento, debe

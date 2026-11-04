@@ -12,7 +12,7 @@ export const CONTEXT_MAX = 80;
 export const cleanContext = (text: string) => text.replace(/\d/g, "").replace(/\s+/g, " ").slice(0, CONTEXT_MAX);
 
 const INSTRUCTION_WORDS =
-  /ignor|olvid|escribe la palabra|responde en|instrucci|reglas|prompt|sistema|diagn[oó]stic|medicament|puntaje|por ciento|recomienda/i;
+  /\b(ignora|ignore|olvida|olvide)\b|escribe la palabra|responde en|instrucciones anteriores|nuevas instrucciones|prompt|diagn[oó]stic|medicament|puntaje|por ciento|recomienda/i;
 
 export function suspicious(text: string): boolean {
   if (INSTRUCTION_WORDS.test(text) || namesCondition(text)) return true;

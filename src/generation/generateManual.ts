@@ -6,6 +6,7 @@ import { buildPrompt, describeProfile } from "./buildPrompt";
 import { applyRails, survivesRails } from "./applyRails";
 import { finalContext, hasContext, NO_CONTEXT, type Context } from "./context";
 import { copiesNote, keepsFrame } from "./copyGuard";
+import { finalObservation } from "./observations";
 
 const MAX_EXAMPLE_LENGTH = 240;
 
@@ -140,9 +141,10 @@ export function adaptedExamples(
   strategies: Strategy[],
   setting: Setting,
   context: Context,
+  hasObservation = false,
 ): Record<string, string> {
   const found: Record<string, string> = {};
-  if (context[setting] === "") return found;
+  if (context[setting] === "" && !hasObservation) return found;
   const notes = [context.classroom, context.home].filter((note) => note !== "");
   for (const line of toTry.split("\n")) {
     const verdict = checkExampleLine(line, strategies, setting, notes);
@@ -162,15 +164,21 @@ export function chosenStrategies(watchFor: string, candidates: Strategy[]): Stra
   return chosen.filter((strategy, i) => chosen.indexOf(strategy) === i);
 }
 
-export async function generateManual(profile: Profile, situations: Context = NO_CONTEXT): Promise<RailedManual> {
+export async function generateManual(
+  profile: Profile,
+  situations: Context = NO_CONTEXT,
+  observation = "",
+): Promise<RailedManual> {
   if (REFERRAL_FIRST.some((flag) => profile.flags.includes(flag))) return applyRails(REFERRAL_SECTIONS, profile.flags);
 
   const matched = matchStrategies(profile);
   if (matched.length === 0) return applyRails(INSUFFICIENT_SECTIONS, profile.flags);
 
   const context = finalContext(situations);
-  const candidates = hasContext(context) ? candidatesFor(profile) : matched;
-  const messages = buildPrompt(promptView(profile), candidates, context);
+  const note = finalObservation(observation);
+  const personalize = hasContext(context) || note !== "";
+  const candidates = personalize ? candidatesFor(profile) : matched;
+  const messages = buildPrompt(promptView(profile), candidates, context, note);
 
   let response: Response;
   try {
@@ -190,15 +198,15 @@ export async function generateManual(profile: Profile, situations: Context = NO_
 
   const reply = parseReply(data.text);
   const examples: Examples = {
-    classroom: adaptedExamples(reply.toTry.classroom, candidates, "classroom", context),
-    home: adaptedExamples(reply.toTry.home, candidates, "home", context),
+    classroom: adaptedExamples(reply.toTry.classroom, candidates, "classroom", context, note !== ""),
+    home: adaptedExamples(reply.toTry.home, candidates, "home", context, note !== ""),
   };
   const notes = [context.classroom, context.home].filter((note) => note !== "");
   const observed = {
     classroom: safeObserved(reply.observed.classroom, notes, profile),
     home: safeObserved(reply.observed.home, notes, profile),
   };
-  const shown = hasContext(context)
+  const shown = personalize
     ? selectStrategies(profile, chosenStrategies(reply.watchFor.classroom || reply.watchFor.home, candidates))
     : matched;
   return applyRails(withStrategies(observed, shown, examples), profile.flags, shown);

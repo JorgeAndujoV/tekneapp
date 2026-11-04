@@ -1,11 +1,10 @@
 import { useState } from "react";
-import type { Intake, Observations, Profile, Session } from "./types/profile";
+import type { Intake, Profile, Session } from "./types/profile";
 import { NO_CONTEXT, type Context } from "./generation/context";
 import type { ManualSections } from "./types/manual";
 import type { Seed } from "./data/seeds";
 import { TRIALS } from "./data/trials";
 import { computeProfile } from "./scoring/computeProfile";
-import { withObservations } from "./scoring/withObservations";
 import { playClip, stopClip } from "./task/audio";
 import Start from "./screens/Start";
 import Handoff from "./screens/Handoff";
@@ -20,6 +19,7 @@ export default function App() {
   const [childCode, setChildCode] = useState("");
   const [intake, setIntake] = useState<Intake>({ redFlag: false, homeLanguageNotSpanish: false });
   const [situations, setSituations] = useState<Context>(NO_CONTEXT);
+  const [observation, setObservation] = useState("");
   const [profile, setProfile] = useState<Profile | null>(null);
   const [seedManual, setSeedManual] = useState<ManualSections | null>(null);
 
@@ -38,8 +38,8 @@ export default function App() {
     setScreen("return");
   }
 
-  function continueToManual(observations: Observations) {
-    setProfile((current) => (current ? withObservations(current, observations) : current));
+  function continueToManual(note: string) {
+    setObservation(note);
     setScreen("manual");
   }
 
@@ -55,6 +55,7 @@ export default function App() {
     setSeedManual(null);
     setChildCode("");
     setSituations(NO_CONTEXT);
+    setObservation("");
     setIntake({ redFlag: false, homeLanguageNotSpanish: false });
     setScreen("start");
   }
@@ -62,6 +63,6 @@ export default function App() {
   if (screen === "handoff") return <Handoff onBegin={() => setScreen("task")} />;
   if (screen === "task") return <Task childCode={childCode} intake={intake} onFinish={finishTask} />;
   if (screen === "return") return <Return onContinue={continueToManual} />;
-  if (screen === "manual" && profile) return <Manual profile={profile} seedManual={seedManual} situations={situations} onRestart={restart} />;
+  if (screen === "manual" && profile) return <Manual profile={profile} seedManual={seedManual} situations={situations} observation={observation} onRestart={restart} />;
   return <Start onBegin={begin} onDemo={showDemo} />;
 }
