@@ -15,9 +15,11 @@ The app has two halves, and they stay separate:
 
 `src/types/profile.ts` is the fixed contract between the two halves.
 
+During each instruction, selected cards display their position in the answer order. Tapping a selected card removes it; tapping it again adds it at the end. The adult or child advances explicitly with **Siguiente** (or **Terminar** on the final item). The self-correction measure counts only explicit deselections, not guesses based on early and later taps.
+
 After generation, `applyRails()` overrides whatever the model wrote. It strips scores, percentages and age equivalents, and removes any sentence that names a condition. If the result has a validity flag, it adds a notice at the top. It always appends the fixed closing, which says the manual is not a diagnosis and recommends a professional evaluation. That closing text is hard-coded and is never generated.
 
-Child data stays in memory. There is no database, storage, analytics or account. Reloading the page erases the session. Children are identified only by a short code that must contain a digit.
+The session and child code stay in page memory; there is no app database, account, or persistent session storage. Reloading the page erases the session. The code appears on the printed manual, so use a non-identifying session code, not a name, initials, birth date, or directly identifying student number. If a school needs to map the code to a student, keep that mapping separately with restricted access. To generate a manual, the app sends summarized descriptors, validity flags, and selected strategies to the configured model provider (OpenRouter by default); it does not send the code or individual taps. The provider processes that request under its own terms. The start screen requires an adult confirmation of authorization and the child's willingness to participate, but the app does not retain proof of consent. Schools that need a formal record should collect it separately according to their procedures.
 
 ## Run it
 
@@ -46,10 +48,10 @@ If the project lives inside WSL and you run Windows Node against `\\wsl.localhos
 ```
 LLM_BASE_URL=https://openrouter.ai/api/v1
 LLM_API_KEY=your-key
-LLM_MODEL=meta-llama/llama-3.3-70b-instruct:free
+LLM_MODEL=google/gemma-4-31b-it:free
 ```
 
-- **OpenRouter** (the default): create a key at openrouter.ai. Free models end in `:free`, and the list changes often, so check that the model in `.env.example` still exists before a demo.
+- **OpenRouter** (the default): create a key at openrouter.ai. The example uses Google's Gemma 4 31B free model, confirmed in OpenRouter's catalog on 2026-11-03. Free model availability and limits can change, so verify it again before a demo.
 - **Gemini**: `LLM_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai`, with a Gemini API key and a current Gemini model id.
 - Any other OpenAI-compatible gateway works by changing the same variables.
 

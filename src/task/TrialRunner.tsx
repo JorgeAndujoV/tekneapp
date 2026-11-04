@@ -1,24 +1,29 @@
 import { useEffect, useRef, useState } from "react";
 import type { Tap, TrialResult } from "../types/profile";
-import { isResponseComplete } from "../scoring/computeProfile";
 import { playClip, stopClip } from "./audio";
 import TapSurface from "./TapSurface";
 
 const SILENCE_LIMIT_MS = 15_000;
+const MAX_TAPS = 3;
 
 interface Props {
   id: string;
   audioFile: string;
   expected: string[];
+  isLast: boolean;
   onDone: (result: TrialResult) => void;
 }
 
 // one instruction: play it, open the response window when it ends, close on a full answer or 15 s of silence
-export default function TrialRunner({ id, audioFile, expected, onDone }: Props) {
+export default function TrialRunner({ id, audioFile, expected, isLast, onDone }: Props) {
   const [listening, setListening] = useState(true);
   const [canReplay, setCanReplay] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const raw = useRef<{ cardId: string | null; at: number }[]>([]);
+  const selectedRef = useRef<string[]>([]);
+  const selectedAt = useRef(new Map<string, number>());
+  const deselections = useRef(0);
   const endedAt = useRef<number | null>(null);
   const isListening = useRef(true);
   const replayed = useRef(false);
@@ -37,11 +42,17 @@ export default function TrialRunner({ id, audioFile, expected, onDone }: Props) 
     window.clearTimeout(silenceTimer.current);
     stopClip();
     const recorded = taps();
+    const finalSelection: Tap[] = selectedRef.current.map((cardId) => ({
+      cardId,
+      t: Math.round((selectedAt.current.get(cardId) ?? performance.now()) - (endedAt.current ?? performance.now())),
+    }));
     onDone({
       trialId: id,
       taps: recorded,
+      finalSelection,
+      selfCorrections: deselections.current,
       replayed: replayed.current,
-      abandoned: !isResponseComplete(recorded, expected),
+      abandoned: finalSelection.length < expected.length,
     });
   }
 
@@ -73,9 +84,21 @@ export default function TrialRunner({ id, audioFile, expected, onDone }: Props) 
 
   function handleTap(cardId: string | null) {
     if (finished.current) return;
-    raw.current.push({ cardId, at: performance.now() });
-    if (endedAt.current === null) return;
-    if (isResponseComplete(taps(), expected)) return finish();
+    const at = performance.now();
+    raw.current.push({ cardId, at });
+    if (cardId === null) return;
+    const next = [...selectedRef.current];
+    if (next.includes(cardId)) {
+      selectedAt.current.delete(cardId);
+      deselections.current++;
+      next.splice(next.indexOf(cardId), 1);
+    } else {
+      if (next.length >= Math.min(expected.length, MAX_TAPS)) return;
+      selectedAt.current.set(cardId, at);
+      next.push(cardId);
+    }
+    selectedRef.current = next;
+    setSelectedIds(next);
     if (!isListening.current) armSilenceTimer();
   }
 
@@ -96,25 +119,27 @@ export default function TrialRunner({ id, audioFile, expected, onDone }: Props) 
 
   return (
     <>
-      <TapSurface onTap={handleTap} />
-      <ReplayButton visible={canReplay && !listening} onPress={replay} />
+      <TapSurface onTap={handleTap} selectedIds={selectedIds} />
+      <div className="flex h-28 shrink-0 items-center justify-center gap-3 px-4 pb-[env(safe-area-inset-bottom)]">
+        <button
+          type="button"
+          onClick={replay}
+          disabled={!canReplay || listening}
+          className={`min-h-14 rounded-full border-2 border-line bg-white px-6 py-4 text-xl font-medium text-ink ${
+            canReplay && !listening ? "" : "invisible"
+          }`}
+        >
+          Escuchar otra vez
+        </button>
+        <button
+          type="button"
+          onClick={finish}
+          disabled={listening}
+          className="btn-primary min-h-14 px-7 py-4 text-xl"
+        >
+          {isLast ? "Terminar" : "Siguiente"}
+        </button>
+      </div>
     </>
-  );
-}
-
-export function ReplayButton({ visible, onPress }: { visible: boolean; onPress?: () => void }) {
-  return (
-    <div className="flex h-24 shrink-0 items-center justify-center pb-[env(safe-area-inset-bottom)]">
-      <button
-        type="button"
-        onClick={onPress}
-        disabled={!visible}
-        className={`rounded-full border-2 border-line bg-white px-8 py-4 text-xl font-medium text-ink ${
-          visible ? "" : "invisible"
-        }`}
-      >
-        Escuchar otra vez
-      </button>
-    </div>
   );
 }
