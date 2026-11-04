@@ -78,9 +78,10 @@ export interface Session {
 export interface Observations {
   watchesSpeaker: boolean;
   worseInClass: boolean;
+  restless: boolean;
 }
 
-export const NO_OBSERVATIONS: Observations = { watchesSpeaker: false, worseInClass: false };
+export const NO_OBSERVATIONS: Observations = { watchesSpeaker: false, worseInClass: false, restless: false };
 
 export interface Intake {
   redFlag: boolean;
@@ -173,6 +174,7 @@ export type Flag =
   | "session_abandoned"
   | "watches_speaker"
   | "worse_in_class"
+  | "restless_session"
   | "home_language"
   | "priority_referral"; // any of the above: this result cannot be read at face value
 
@@ -184,6 +186,7 @@ export const REFERRAL_FIRST: Flag[] = [
   "replays_often",
   "many_no_response",
   "watches_speaker",
+  "restless_session",
 ];
 
 export type Reliability =

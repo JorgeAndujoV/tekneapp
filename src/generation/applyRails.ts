@@ -75,6 +75,8 @@ export const VALIDITY_NOTICES: Partial<Record<Flag, string>> = {
     "Aviso de validez: no respondió a muchas de las instrucciones, por lo que no se puede describir cómo las sigue. Antes de probar estrategias, conviene consultar a una persona especialista.",
   watches_speaker:
     "Aviso de validez: la persona adulta observó que miró la boca de quien habla o giró la cabeza para escuchar. Antes de probar estrategias, conviene una revisión de la audición.",
+  restless_session:
+    "Aviso de validez: la persona adulta observó que estuvo muy inquieta o inquieto, o que respondió al azar, durante toda la actividad. Por eso este resultado no se puede leer tal cual. Antes de probar estrategias, conviene consultar a una persona especialista.",
   worse_in_class:
     "Aviso: la persona adulta observó que responde mucho peor en el salón o en casa que en esta tarea tranquila. Conviene revisar el ruido y las condiciones del lugar donde le dan las instrucciones.",
   session_abandoned:

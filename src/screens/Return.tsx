@@ -23,6 +23,7 @@ export default function Return({ onContinue }: { onContinue: (observations: Obse
         setObservations({
           watchesSpeaker: observations.watchesSpeaker || suggested.watchesSpeaker,
           worseInClass: observations.worseInClass || suggested.worseInClass,
+          restless: observations.restless || suggested.restless,
         });
         setState("done");
       },

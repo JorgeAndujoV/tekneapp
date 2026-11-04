@@ -14,6 +14,11 @@ export const OBSERVATION_OPTIONS = [
     field: "worseInClass",
     label: "En el salón o en casa responde mucho peor que en esta tarea tranquila",
   },
+  {
+    id: "restless_session",
+    field: "restless",
+    label: "Estuvo muy inquieta o inquieto, o respondió al azar, durante toda la actividad",
+  },
 ] as const;
 
 export const OBSERVATION_MAX = 200;
@@ -46,6 +51,7 @@ export function parseSuggestions(reply: string): Observations {
   return {
     watchesSpeaker: chosen("watches_speaker"),
     worseInClass: chosen("worse_in_class"),
+    restless: chosen("restless_session"),
   };
 }
 
