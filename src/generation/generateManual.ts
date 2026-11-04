@@ -1,6 +1,7 @@
 import { promptView, REFERRAL_FIRST, type Profile } from "../types/profile";
-import type { ManualSections, ManualVersion, RailedManual, Strategy } from "../types/manual";
+import type { ManualSections, RailedManual, Strategy } from "../types/manual";
 import { matchStrategies } from "./matchStrategies";
+import { withStrategies } from "./strategyText";
 import { buildPrompt } from "./buildPrompt";
 import { applyRails } from "./applyRails";
 
@@ -47,12 +48,8 @@ function asText(value: unknown): string | null {
   return null;
 }
 
-function parseVersion(value: unknown): ManualVersion | null {
-  const v = value as Record<string, unknown> | null;
-  const observed = asText(v?.observed);
-  const toTry = asText(v?.toTry);
-  const watchFor = asText(v?.watchFor);
-  return observed && toTry && watchFor ? { observed, toTry, watchFor } : null;
+function parseObservedText(value: unknown): string | null {
+  return asText((value as Record<string, unknown> | null)?.observed);
 }
 
 // returns the substring from `start` to its matching "}", or null if braces never balance;
@@ -78,7 +75,7 @@ function matchBraces(text: string, start: number): string | null {
 
 // tries every "{" in the text as a possible start, so a stray unmatched brace in commentary
 // before or after the real object (or a ```json fence around it) doesn't break the extraction
-export function parseSections(text: string): ManualSections {
+export function parseObserved(text: string): { classroom: string; home: string } {
   const unfenced = text.replace(/```(?:json)?/gi, "");
   for (const source of [unfenced, text]) {
     for (let i = source.indexOf("{"); i !== -1; i = source.indexOf("{", i + 1)) {
@@ -86,8 +83,8 @@ export function parseSections(text: string): ManualSections {
       if (!candidate) continue;
       try {
         const data = JSON.parse(candidate);
-        const classroom = parseVersion(data?.classroom);
-        const home = parseVersion(data?.home);
+        const classroom = parseObservedText(data?.classroom);
+        const home = parseObservedText(data?.home);
         if (classroom && home) return { classroom, home };
       } catch {}
     }
@@ -102,7 +99,7 @@ export async function generateManual(profile: Profile): Promise<RailedManual> {
   const strategies = matchStrategies(profile);
   if (strategies.length === 0) return applyRails(INSUFFICIENT_SECTIONS, profile.flags);
 
-  const messages = buildPrompt(promptView(profile), strategies);
+  const messages = buildPrompt(promptView(profile));
 
   let response: Response;
   try {
@@ -120,7 +117,7 @@ export async function generateManual(profile: Profile): Promise<RailedManual> {
   if (!response.ok) throw new GenerationError(data?.error ?? "No se pudo generar el manual.");
   if (typeof data?.text !== "string") throw new GenerationError("El servidor devolvió una respuesta vacía.");
 
-  return applyRails(parseSections(data.text), profile.flags);
+  return applyRails(withStrategies(parseObserved(data.text), strategies), profile.flags);
 }
 
 export function strategiesFor(profile: Profile): Strategy[] {

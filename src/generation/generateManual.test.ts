@@ -1,29 +1,29 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { FIXTURE_TYPICAL_WITH_SHORT_SPAN, type Flag } from "../types/profile";
-import { generateManual, parseSections, strategiesFor } from "./generateManual";
+import { generateManual, parseObserved, strategiesFor } from "./generateManual";
 
 const VALID = {
-  classroom: { observed: "a", toTry: "b", watchFor: "c" },
-  home: { observed: "d", toTry: "e", watchFor: "f" },
+  classroom: { observed: "a", toTry: "", watchFor: "" },
+  home: { observed: "d", toTry: "", watchFor: "" },
 };
 
-describe("parseSections", () => {
+describe("parseObserved", () => {
   it("parses a clean JSON response", () => {
-    expect(parseSections(JSON.stringify(VALID))).toEqual(VALID);
+    expect(parseObserved(JSON.stringify(VALID))).toEqual({ classroom: "a", home: "d" });
   });
 
   it("parses JSON wrapped in a markdown fence with trailing prose", () => {
     const text = `Aquí tienes el manual:\n\`\`\`json\n${JSON.stringify(VALID)}\n\`\`\`\n¡Espero que ayude!`;
-    expect(parseSections(text)).toEqual(VALID);
+    expect(parseObserved(text)).toEqual({ classroom: "a", home: "d" });
   });
 
   it("ignores a stray brace in commentary before the real object", () => {
     const text = `Nota: usa { con cuidado.\n${JSON.stringify(VALID)}`;
-    expect(parseSections(text)).toEqual(VALID);
+    expect(parseObserved(text)).toEqual({ classroom: "a", home: "d" });
   });
 
   it("throws GenerationError when no valid object is found", () => {
-    expect(() => parseSections("no hay json aquí")).toThrow();
+    expect(() => parseObserved("no hay json aquí")).toThrow();
   });
 });
 
@@ -52,13 +52,13 @@ describe("generateManual", () => {
       classroom: {
         observed:
           "Siguió las instrucciones de dos pasos. Obtuvo 88 puntos. Esta observación indica autismo. Esperó a escuchar toda la frase.",
-        toTry: "Da una instrucción breve y espera a que la complete.",
-        watchFor: "Completa los pasos en el orden indicado.",
+        toTry: "",
+        watchFor: "",
       },
       home: {
         observed: "Siguió las instrucciones de dos pasos. Esperó a escuchar toda la frase.",
-        toTry: "Divide la tarea en partes y haz una pausa.",
-        watchFor: "Pide escuchar de nuevo cuando lo necesita.",
+        toTry: "",
+        watchFor: "",
       },
     };
     vi.stubGlobal(
@@ -76,9 +76,10 @@ describe("generateManual", () => {
     expect(manual.sections.classroom.observed).toBe(
       "Siguió las instrucciones de dos pasos. Esperó a escuchar toda la frase.",
     );
-    expect(manual.sections.classroom.toTry).toBe(modelSections.classroom.toTry);
+    expect(manual.sections.classroom.toTry).toContain("Paso 1:");
+    expect(manual.sections.classroom.toTry).toContain(strategiesFor(FIXTURE_TYPICAL_WITH_SHORT_SPAN)[0].title);
     expect(manual.sections.home.observed).toBe(modelSections.home.observed);
-    expect(manual.sections.home.toTry).toBe(modelSections.home.toTry);
+    expect(manual.sections.home.toTry).toContain(strategiesFor(FIXTURE_TYPICAL_WITH_SHORT_SPAN)[0].example.home);
   });
 });
 

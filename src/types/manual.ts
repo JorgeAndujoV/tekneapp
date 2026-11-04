@@ -10,7 +10,11 @@ export interface Strategy {
   setting: "classroom" | "home" | "both";
   codes: StrategyCode[];
   rationale: string;
+  whenToUse: string;
   script: string[];
+  example: { classroom: string; home: string };
+  ifItDoesNotWork: string;
+  commonMistakes: string;
   watchFor: string;
   evidence: Evidence;
   evidenceNote: string;

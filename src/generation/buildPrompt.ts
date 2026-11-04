@@ -1,5 +1,4 @@
 import type { Descriptors, Profile, promptView } from "../types/profile";
-import type { Strategy } from "../types/manual";
 
 export type PromptView = ReturnType<typeof promptView>;
 
@@ -10,12 +9,6 @@ export interface ChatMessage {
   role: "system" | "user";
   content: string;
 }
-
-const SETTING_LABEL: Record<Strategy["setting"], string> = {
-  classroom: "solo para el aula",
-  home: "solo para la casa",
-  both: "para el aula y la casa",
-};
 
 function describeInWords(d: Descriptors): string[] {
   const lines: string[] = [];
@@ -46,36 +39,24 @@ function describeInWords(d: Descriptors): string[] {
   return lines;
 }
 
-function strategyInWords(s: Strategy): string {
-  return [
-    `Estrategia: ${s.title} (${SETTING_LABEL[s.setting]})`,
-    `En qué consiste: ${s.rationale}`,
-    "Guion:",
-    ...s.script.map((step) => `- ${step}`),
-    `Señal de que funciona: ${s.watchFor}`,
-  ].join("\n");
-}
-
-const SYSTEM = `Escribes manuales de apoyo breves para docentes y familias en México.
+const SYSTEM = `Escribes la parte "Lo que observamos" de manuales de apoyo breves para docentes y familias en México.
 
 Reglas:
 - Escribe en español sencillo, para una persona adulta sin formación clínica. Frases cortas, tono cálido y concreto.
-- Usa solo las estrategias que se te dan. No agregues estrategias, actividades, consejos ni recursos nuevos.
 - Nunca menciones, sugieras ni insinúes una condición, un trastorno o un diagnóstico.
 - No escribas ninguna cifra: ni puntajes, ni porcentajes, ni niveles, ni edades equivalentes.
 - Describe lo que hizo, nunca por qué lo hizo.
 - No sabemos si es niña o niño: redacta sin marcar el género cuando puedas.
-- No agregues avisos ni recomendaciones de acudir a profesionales; eso se añade aparte.
+- No agregues estrategias, actividades, consejos, avisos ni recomendaciones de acudir a profesionales; todo eso se añade aparte.
 
 Formato de respuesta: solo un objeto JSON, sin texto antes ni después, con esta forma exacta:
-{"classroom":{"observed":"...","toTry":"...","watchFor":"..."},"home":{"observed":"...","toTry":"...","watchFor":"..."}}
+{"classroom":{"observed":"...","toTry":"","watchFor":""},"home":{"observed":"...","toTry":"","watchFor":""}}
 
 - "classroom" es la versión para la maestra o el maestro; "home" es la versión para la familia.
 - "observed" (lo que observamos): entre dos y cuatro oraciones, basadas solo en las observaciones dadas.
-- "toTry" (qué probar): cada estrategia que corresponda a ese entorno, en una línea que empiece con "- ", con su título y las palabras exactas que dice la persona adulta. Adapta los ejemplos al entorno sin cambiar la estrategia. Si una estrategia es solo para el otro entorno, omítela. Si no queda ninguna, escribe que por ahora no hay una estrategia específica para este entorno.
-- "watchFor" (a qué estar atentos): las señales de que funciona, tomadas de las estrategias usadas, en dos o tres oraciones.`;
+- "toTry" y "watchFor": déjalos siempre como cadena vacía.`;
 
-export function buildPrompt(view: PromptOnly, strategies: Strategy[]): ChatMessage[] {
+export function buildPrompt(view: PromptOnly): ChatMessage[] {
   const cautions: string[] = [];
   if (view.reliability === "partial") cautions.push("La sesión fue más corta de lo previsto: describe lo observado con cautela.");
   if (view.flags.length > 0)
@@ -85,10 +66,6 @@ export function buildPrompt(view: PromptOnly, strategies: Strategy[]): ChatMessa
     "Observaciones de una tarea breve en la que escuchó instrucciones y tocó figuras en una pantalla:",
     ...describeInWords(view.descriptors).map((line) => `- ${line}`),
     ...(cautions.length ? ["", ...cautions] : []),
-    "",
-    "Estrategias que puedes usar (solo estas):",
-    "",
-    strategies.map(strategyInWords).join("\n\n"),
   ].join("\n");
 
   // last line of defence for the main rule: no number ever reaches the model

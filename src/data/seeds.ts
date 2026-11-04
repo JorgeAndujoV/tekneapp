@@ -1,6 +1,9 @@
 import type { Session, TrialResult } from "../types/profile";
 import type { ManualSections } from "../types/manual";
-import { REFERRAL_SECTIONS } from "../generation/generateManual";
+import { REFERRAL_SECTIONS, strategiesFor } from "../generation/generateManual";
+import { withStrategies } from "../generation/strategyText";
+import { computeProfile } from "../scoring/computeProfile";
+import { TRIALS } from "./trials";
 
 export interface Seed {
   id: string;
@@ -89,59 +92,22 @@ const ASKER_OBSERVED =
 const EARLY_OBSERVED =
   "Siguió bien instrucciones de dos pasos; cuando eran tres pasos, solía perder alguno. Con frecuencia empezó a responder antes de que terminara la instrucción. Cuando la instrucción decía los pasos en otro orden, con \"antes de\" o \"después de\", le costó hacerlos en el orden correcto; también le costaron las instrucciones con \"no\" o con condiciones. No pidió escuchar la instrucción otra vez.";
 
-// written by hand in the same voice the model is asked for, so the demo works with no network at all
+function manualFor(session: Session, observed: string): ManualSections {
+  return withStrategies({ classroom: observed, home: observed }, strategiesFor(computeProfile(session, TRIALS)));
+}
+
 export const SEEDS: Seed[] = [
   {
     id: "seed-a",
     label: "Ejemplo A: pide que le repitan",
     session: askerSession,
-    manual: {
-      classroom: {
-        observed: ASKER_OBSERVED,
-        toTry: [
-          "- Muestra los pasos con objetos. Pon frente a ti los objetos en el orden en que se van a usar. Señala el primero y di: \"Primero, esto.\" Señala el siguiente y di: \"Después, esto.\" Pide: \"Ahora tú, en el mismo orden.\"",
-          "- Reconoce cuando pide ayuda. Cuando pida que repitas, responde: \"Qué bueno que preguntaste.\" Repite la instrucción igual, sin agregar palabras. Luego di: \"Siempre que lo necesites, pregúntame.\"",
-        ].join("\n"),
-        watchFor:
-          "Mira los objetos para ubicarse sin que se lo indiques. Pide que le repitan en el momento en que se pierde, no al final.",
-      },
-      home: {
-        observed: ASKER_OBSERVED,
-        toTry: [
-          "- Muestra los pasos con objetos. Pon sobre la mesa la ropa en el orden en que se va a poner. Señala la primera prenda y di: \"Primero, esto.\" Señala la siguiente y di: \"Después, esto.\" Pide: \"Ahora tú, en el mismo orden.\"",
-          "- Reconoce cuando pide ayuda. Cuando pida que repitas, responde: \"Qué bueno que preguntaste.\" Repite la instrucción igual, sin agregar palabras. Luego di: \"Siempre que lo necesites, pregúntame.\"",
-        ].join("\n"),
-        watchFor:
-          "Mira los objetos para ubicarse sin que se lo indiques. Pide que le repitan en el momento en que se pierde, no al final.",
-      },
-    },
+    manual: manualFor(askerSession, ASKER_OBSERVED),
   },
   {
     id: "seed-b",
     label: "Ejemplo B: empieza antes de tiempo",
     session: earlyStarterSession,
-    manual: {
-      classroom: {
-        observed: EARLY_OBSERVED,
-        toTry: [
-          "- Muestra primero cómo se hace. Ponte frente a la niña o el niño y haz los pasos despacio, diciendo cada uno: \"Primero saco el libro. Luego lo abro.\" Pide: \"Ahora tú.\" Espera a que haga los pasos sin ayudarle. Si se equivoca, vuelve a mostrarlo igual, sin regañar.",
-          "- Menos opciones y menos detalles. Deja sobre la mesa solo los materiales que se van a usar. Nombra el objeto con un solo detalle: \"el lápiz\", no \"el lápiz azul de la caja de arriba\". Señala el objeto mientras lo nombras. Agrega un detalle más solo cuando ya acierta con lo anterior.",
-          "- Un lugar tranquilo y de frente. Busca un lugar y un momento con poco ruido: cierra la puerta del salón. Ponte frente a la niña o el niño, a su altura, antes de hablar. Da la instrucción con voz tranquila. Si hay ruido que no puedes quitar, acércate y habla más cerca en lugar de subir la voz.",
-        ].join("\n"),
-        watchFor:
-          "Hace los pasos en el orden en que los mostraste. Toma el objeto correcto sin que tengas que señalarlo otra vez, y responde a la primera instrucción sin que tengas que repetirla.",
-      },
-      home: {
-        observed: EARLY_OBSERVED,
-        toTry: [
-          "- Muestra primero cómo se hace. Ponte frente a la niña o el niño y haz los pasos despacio, diciendo cada uno: \"Primero me lavo las manos. Luego me siento.\" Pide: \"Ahora tú.\" Espera a que haga los pasos sin ayudarle. Si se equivoca, vuelve a mostrarlo igual, sin regañar.",
-          "- Menos opciones y menos detalles. Deja sobre la mesa solo lo que se va a usar para cenar. Nombra el objeto con un solo detalle: \"el vaso\", no \"el vaso azul del estante de abajo\". Señala el objeto mientras lo nombras. Agrega un detalle más solo cuando ya acierta con lo anterior.",
-          "- Un lugar tranquilo y de frente. Busca un lugar y un momento con poco ruido: apaga la televisión. Ponte frente a la niña o el niño, a su altura, antes de hablar. Da la instrucción con voz tranquila. Si hay ruido que no puedes quitar, acércate y habla más cerca en lugar de subir la voz.",
-        ].join("\n"),
-        watchFor:
-          "Hace los pasos en el orden en que los mostraste. Toma el objeto correcto sin que tengas que señalarlo otra vez, y responde a la primera instrucción sin que tengas que repetirla.",
-      },
-    },
+    manual: manualFor(earlyStarterSession, EARLY_OBSERVED),
   },
   {
     id: "seed-c",
