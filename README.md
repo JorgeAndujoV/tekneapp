@@ -4,8 +4,6 @@ A short listening task for first graders and a generator of practical support ma
 
 A child hears spoken instructions of growing length and taps coloured shapes. The app measures what happened, then writes a support manual in Spanish for the adult: a classroom version and a home version.
 
-> **The strategy library (`src/data/strategies.json`) is unreviewed draft content.** It has not yet been reviewed by the clinical team and must not be used with families or schools until it has.
-
 ## Intended use
 
 This app is educational support for the adults around a child (teachers and families). It describes what a child did in a short task and suggests supports. It is not for diagnosis, early detection or clinical decisions, and it does not replace a professional evaluation.
