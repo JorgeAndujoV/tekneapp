@@ -53,7 +53,7 @@ function describeInWords(d: Descriptors): string[] {
 function strategyInWords(s: Strategy): string {
   return [
     `Estrategia: ${s.title} (${SETTING_LABEL[s.setting]})`,
-    `Por qué: ${s.rationale}`,
+    `En qué consiste: ${s.rationale}`,
     "Guion:",
     ...s.script.map((step) => `- ${step}`),
     `Señal de que funciona: ${s.watchFor}`,

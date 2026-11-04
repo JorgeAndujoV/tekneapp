@@ -6,276 +6,291 @@
       "title": "Una instrucción a la vez",
       "setting": "both",
       "trigger": { "span": "one" },
-      "rationale": "Cuando escucha una sola instrucción, la puede guardar completa y hacerla.",
+      "codes": ["E1", "E2"],
+      "rationale": "Da un solo paso a la vez y espera a que se cumpla antes de dar el siguiente.",
       "script": [
         "Acércate, di su nombre y espera a que te mire.",
         "Da un solo paso: \"Saca tu cuaderno.\"",
         "Espera a que lo haga antes de decir lo siguiente.",
         "Cuando termine, da el siguiente paso: \"Ahora ábrelo donde está el separador.\""
       ],
-      "watchFor": "Termina cada paso sin que tengas que repetirlo."
+      "watchFor": "Termina cada paso sin que tengas que repetirlo.",
+      "evidence": "theoretical",
+      "evidenceNote": "Guía publicada para docentes; no encontramos estudios que prueben esta estrategia por sí sola en niños de esta edad.",
+      "source": "Gathercole y Alloway 2007, pp. 15-17",
+      "author": null,
+      "approvedOn": null,
+      "version": 1
     },
     {
       "id": "s02",
       "title": "Comprueba que se quedó con el paso",
       "setting": "both",
       "trigger": { "span": "one", "asksForRepeats": "never" },
-      "rationale": "No pide que le repitan, así que conviene comprobar con calma que se quedó con la instrucción.",
+      "codes": ["E4", "E8"],
+      "rationale": "Después de dar la instrucción, pide que diga qué va a hacer antes de empezar.",
       "script": [
         "Da la instrucción una vez: \"Guarda los colores en la caja.\"",
         "Pregunta sin prisa: \"¿Qué vas a hacer?\"",
         "Si lo dice bien: \"Eso es, adelante.\"",
         "Si le falta algo, repite la instrucción con las mismas palabras."
       ],
-      "watchFor": "Puede decir la instrucción con sus propias palabras antes de empezar."
+      "watchFor": "Puede decir la instrucción con sus propias palabras antes de empezar.",
+      "evidence": "theoretical",
+      "evidenceNote": "Parte del paso \"supervisar al niño\" de una guía publicada para docentes; no encontramos estudios que la prueben por sí sola.",
+      "source": "Gathercole y Alloway 2007, p. 15",
+      "author": null,
+      "approvedOn": null,
+      "version": 1
     },
     {
       "id": "s03",
       "title": "Muestra los pasos con objetos",
       "setting": "both",
       "trigger": { "span": "one", "orderHandling": "struggles" },
-      "rationale": "Ver los pasos en fila le ayuda a no depender solo de lo que escucha.",
+      "codes": ["E1", "E2", "E8"],
+      "rationale": "Muestra los objetos en el orden en que se van a usar.",
       "script": [
         "Pon frente a ti los objetos en el orden en que se van a usar.",
         "Señala el primero y di: \"Primero, esto.\"",
         "Señala el siguiente y di: \"Después, esto.\"",
         "Pide: \"Ahora tú, en el mismo orden.\""
       ],
-      "watchFor": "Mira los objetos para ubicarse sin que se lo indiques."
+      "watchFor": "Mira los objetos para ubicarse sin que se lo indiques.",
+      "evidence": "theoretical",
+      "evidenceNote": "La guía para docentes recomienda apoyos externos; la única evidencia empírica encontrada es una revisión sobre apoyos visuales en autismo. No se ha probado esta estrategia por sí sola.",
+      "source": "Gathercole y Alloway 2007, pp. 16 y 18; Rutherford et al. 2020",
+      "author": null,
+      "approvedOn": null,
+      "version": 1
     },
     {
       "id": "s04",
       "title": "Dos pasos y una pausa",
       "setting": "both",
       "trigger": { "span": "two" },
-      "rationale": "Con dos pasos responde bien; con tres suele perder alguno, así que conviene dar dos y esperar.",
+      "codes": ["E1", "E2"],
+      "rationale": "Da la tarea en partes de dos pasos, con una pausa entre ellas.",
       "script": [
         "Divide la tarea en partes de dos pasos.",
         "Di los dos primeros: \"Saca tu libro y ábrelo.\"",
         "Espera a que termine.",
         "Da los dos siguientes: \"Ahora lee el título y levanta la mano.\""
       ],
-      "watchFor": "Completa cada par de pasos sin quedarse a medias."
+      "watchFor": "Completa cada par de pasos sin quedarse a medias.",
+      "evidence": "theoretical",
+      "evidenceNote": "Guía publicada para docentes; no encontramos estudios que prueben esta estrategia por sí sola en niños de esta edad.",
+      "source": "Gathercole y Alloway 2007, pp. 15-17",
+      "author": null,
+      "approvedOn": null,
+      "version": 1
     },
     {
       "id": "s05",
       "title": "Invítale a decir la instrucción",
       "setting": "both",
       "trigger": { "span": "two", "asksForRepeats": "sometimes" },
-      "rationale": "Ya sabe pedir que le repitan; decir la instrucción en voz alta le ayuda a guardar los pasos.",
+      "codes": ["E4", "E8"],
+      "rationale": "Pide que diga la instrucción con sus propias palabras antes de empezar.",
       "script": [
         "Da la instrucción: \"Toma tu lápiz y escribe tu nombre.\"",
         "Pregunta: \"¿Me la dices tú?\"",
         "Escucha y responde: \"Muy bien, ya la tienes.\"",
         "Si pide que la repitas, repítela igual, sin agregar palabras."
       ],
-      "watchFor": "Dice la instrucción completa por su cuenta antes de empezar."
+      "watchFor": "Dice la instrucción completa por su cuenta antes de empezar.",
+      "evidence": "theoretical",
+      "evidenceNote": "Adaptación de un paso de la guía para docentes (supervisar al niño pidiéndole que diga qué va a hacer); su uso con este patrón es propuesta del equipo y no se ha probado.",
+      "source": "Gathercole y Alloway 2007, p. 15",
+      "author": null,
+      "approvedOn": null,
+      "version": 1
     },
     {
       "id": "s06",
       "title": "Tareas largas en tandas de dos",
       "setting": "both",
       "trigger": { "span": "two", "orderHandling": "holds" },
-      "rationale": "Respeta el orden de los pasos, así que puede seguir una tarea larga si se la das por partes y anunciadas.",
+      "codes": ["E1", "E2"],
+      "rationale": "Anuncia que la tarea tiene partes y dalas una por una.",
       "script": [
         "Antes de empezar, anuncia: \"Son dos partes. Te digo la primera.\"",
         "Primera tanda: \"Recorta la figura y pégala en la hoja.\"",
         "Al terminar: \"Ya va la segunda parte.\"",
         "Segunda tanda: \"Colorea la figura y guarda las tijeras.\""
       ],
-      "watchFor": "Espera o pregunta por la segunda parte en lugar de inventarla."
+      "watchFor": "Espera o pregunta por la segunda parte en lugar de inventarla.",
+      "evidence": "theoretical",
+      "evidenceNote": "Guía publicada para docentes; no encontramos estudios que prueben esta estrategia por sí sola en niños de esta edad.",
+      "source": "Gathercole y Alloway 2007, pp. 15-17",
+      "author": null,
+      "approvedOn": null,
+      "version": 1
     },
     {
       "id": "s07",
       "title": "Di los pasos en el orden en que se hacen",
       "setting": "both",
       "trigger": { "span": "two", "orderHandling": "struggles" },
-      "rationale": "Cuando la instrucción cambia el orden con \"antes de\" o \"después de\", le cuesta; decirla en el mismo orden en que se hace lo evita.",
+      "codes": ["E3"],
+      "rationale": "Di los pasos en el mismo orden en que se hacen, sin usar \"antes de\" ni \"después de\".",
       "script": [
         "En lugar de \"Antes de salir, guarda tu libro\", di: \"Guarda tu libro. Luego sal.\"",
         "Usa siempre \"primero\" y \"luego\": \"Primero lávate las manos. Luego siéntate.\"",
         "Evita empezar la frase por el paso que va al final.",
         "Si lo hace en otro orden, repite igual: \"Primero esto, luego aquello.\""
       ],
-      "watchFor": "Hace los pasos en el orden correcto sin que tengas que detenerle."
-    },
-    {
-      "id": "s08",
-      "title": "Sube la dificultad poco a poco",
-      "setting": "both",
-      "trigger": { "span": "threeOrMore" },
-      "rationale": "Sigue bien instrucciones de varios pasos, así que se le puede pedir un poco más.",
-      "script": [
-        "Da una instrucción de tres pasos: \"Saca tu libro, ábrelo en la lección y lee el título.\"",
-        "Si la hace bien, la siguiente vez agrega una condición: \"Si terminas, levanta la mano.\"",
-        "Reconoce el esfuerzo: \"Te acordaste de todo.\""
-      ],
-      "watchFor": "Sigue cumpliendo las instrucciones cuando se hacen un poco más largas."
-    },
-    {
-      "id": "s09",
-      "title": "Primero y después con los dedos",
-      "setting": "both",
-      "trigger": { "orderHandling": "struggles" },
-      "rationale": "Marcar cada paso con un dedo hace visible el orden.",
-      "script": [
-        "Levanta un dedo: \"Primero, guarda el cuaderno.\"",
-        "Levanta otro dedo: \"Después, forma la fila.\"",
-        "Pregunta: \"¿Qué va primero?\" y espera a que señale tu dedo.",
-        "Di: \"Listo, empieza.\""
-      ],
-      "watchFor": "Usa sus propios dedos para recordar el orden."
+      "watchFor": "Hace los pasos en el orden correcto sin que tengas que detenerle.",
+      "evidence": "indirect",
+      "evidenceNote": "Se documenta que niños pequeños suelen responder en el orden en que se menciona. La guía recomienda estructuras simples, pero no menciona \"antes de\"; evitarlo es una propuesta clínica. No se ha probado por sí sola.",
+      "source": "Gathercole y Alloway 2007; Amidon y Carey 1972; Blything et al. 2015",
+      "author": null,
+      "approvedOn": null,
+      "version": 1
     },
     {
       "id": "s10",
       "title": "Pausa de orden: ¿qué va primero?",
       "setting": "classroom",
       "trigger": { "orderHandling": "struggles", "startsEarly": true },
-      "rationale": "Empieza antes de escuchar todo y le cuesta el orden; una pregunta breve le da tiempo de ordenar los pasos.",
+      "codes": ["E3", "E7"],
+      "rationale": "Antes de empezar, pregunta qué va primero.",
       "script": [
         "Antes de la instrucción, di: \"Escucha todo y luego te pregunto.\"",
         "Da la instrucción: \"Guarda los colores y luego saca la regla.\"",
         "Pregunta: \"¿Qué vas a hacer primero?\"",
         "Cuando responda bien: \"Eso. Ahora sí, empieza.\""
       ],
-      "watchFor": "Responde a la pregunta antes de moverse y, con el tiempo, ya no la necesita."
-    },
-    {
-      "id": "s11",
-      "title": "Manos quietas mientras escuchas",
-      "setting": "both",
-      "trigger": { "startsEarly": true, "pace": "quick" },
-      "rationale": "Responde rápido y a veces empieza antes de que termine la instrucción; una señal fija de espera le ayuda a escuchar todo.",
-      "script": [
-        "Acuerden una señal: \"Cuando yo junte las manos, tú juntas las tuyas y escuchas.\"",
-        "Junta las manos y da la instrucción completa.",
-        "Al terminar, separa las manos y di: \"Ya. Ahora sí.\"",
-        "Si empieza antes, junta las manos otra vez, sin regañar, y repite la instrucción."
-      ],
-      "watchFor": "Espera tu señal antes de moverse sin que se lo recuerdes."
+      "watchFor": "Responde a la pregunta antes de moverse y, con el tiempo, ya no la necesita.",
+      "evidence": "theoretical",
+      "evidenceNote": "Adaptación de un paso de la guía para docentes (supervisar al niño pidiéndole que diga qué va a hacer); su uso con este patrón es propuesta del equipo y no se ha probado.",
+      "source": "Gathercole y Alloway 2007, p. 15",
+      "author": null,
+      "approvedOn": null,
+      "version": 1
     },
     {
       "id": "s12",
       "title": "Decirla antes de hacerla",
       "setting": "home",
       "trigger": { "startsEarly": true, "asksForRepeats": "never" },
-      "rationale": "Empieza pronto y no pide ayuda; decir la instrucción antes de actuar le lleva a escucharla completa.",
+      "codes": ["E7"],
+      "rationale": "Pide que diga la instrucción antes de hacerla.",
       "script": [
         "Di: \"Te voy a pedir algo. Escucha hasta el final.\"",
         "Da la instrucción: \"Lleva tu plato a la cocina y trae una servilleta.\"",
         "Pide: \"Dímela antes de ir.\"",
         "Si le falta un paso, repítelo con calma y pide que la diga otra vez."
       ],
-      "watchFor": "Dice la instrucción completa sin que se lo pidas."
+      "watchFor": "Dice la instrucción completa sin que se lo pidas.",
+      "evidence": "theoretical",
+      "evidenceNote": "Adaptación de un paso de la guía para docentes (supervisar al niño pidiéndole que diga qué va a hacer); su uso con este patrón es propuesta del equipo y no se ha probado.",
+      "source": "Gathercole y Alloway 2007, p. 15",
+      "author": null,
+      "approvedOn": null,
+      "version": 1
     },
     {
       "id": "s13",
       "title": "Enseña a pedir que repitan",
       "setting": "both",
       "trigger": { "asksForRepeats": "never" },
-      "rationale": "No pide que le repitan; necesita saber que pedirlo está bien y cómo hacerlo.",
+      "codes": ["E8"],
+      "rationale": "Muestra que pedir que repitan está permitido y cómo hacerlo.",
       "script": [
         "Enséñale una frase: \"Si no te acuerdas, puedes decir: ¿me lo repites?\"",
         "Practíquenla en un momento tranquilo, como un juego.",
         "Cuando la use, responde con gusto: \"Claro, te lo repito.\"",
         "Repite la instrucción con las mismas palabras."
       ],
-      "watchFor": "Pide que le repitan cuando se pierde, sin que se lo sugieras."
+      "watchFor": "Pide que le repitan cuando se pierde, sin que se lo sugieras.",
+      "evidence": "indirect",
+      "evidenceNote": "La guía la recomienda y niños de 4 a 9 años sí piden aclaraciones cuando la instrucción es difícil. No se ha probado esta estrategia por sí sola.",
+      "source": "Gathercole y Alloway 2007, p. 18; Rodriguez Steen y Malloy 2022",
+      "author": null,
+      "approvedOn": null,
+      "version": 1
     },
     {
       "id": "s14",
       "title": "Reconoce cuando pide ayuda",
       "setting": "both",
       "trigger": { "asksForRepeats": "sometimes" },
-      "rationale": "A veces pide que le repitan; reconocerlo hace que lo siga haciendo cuando lo necesita.",
+      "codes": ["E8"],
+      "rationale": "Reconoce en el momento en que pide que le repitan.",
       "script": [
         "Cuando pida que repitas, responde: \"Qué bueno que preguntaste.\"",
         "Repite la instrucción igual, sin agregar palabras.",
         "Luego di: \"Siempre que lo necesites, pregúntame.\""
       ],
-      "watchFor": "Pide que le repitan en el momento en que se pierde, no al final."
+      "watchFor": "Pide que le repitan en el momento en que se pierde, no al final.",
+      "evidence": "indirect",
+      "evidenceNote": "La guía la recomienda y niños de 4 a 9 años sí piden aclaraciones cuando la instrucción es difícil. No se ha probado esta estrategia por sí sola.",
+      "source": "Gathercole y Alloway 2007, p. 18; Rodriguez Steen y Malloy 2022",
+      "author": null,
+      "approvedOn": null,
+      "version": 1
     },
     {
       "id": "s15",
       "title": "Repite igual y deja que la diga",
       "setting": "both",
       "trigger": { "asksForRepeats": "often" },
-      "rationale": "Pide que le repitan con frecuencia; repetir con las mismas palabras y que la diga en voz alta reduce las veces que lo necesita.",
+      "codes": ["E1", "E2"],
+      "rationale": "Repite la instrucción con las mismas palabras y deja que la diga en voz alta.",
       "script": [
         "Repite la instrucción con exactamente las mismas palabras.",
         "Pide: \"Ahora dímela tú.\"",
         "Si la dice completa: \"Perfecto, vamos.\"",
         "Si le falta una parte, dale solo esa parte: \"Te faltó lo de la mochila.\""
       ],
-      "watchFor": "Con el paso de los días, pide la repetición menos veces."
-    },
-    {
-      "id": "s16",
-      "title": "Espera antes de repetir",
-      "setting": "both",
-      "trigger": { "pace": "slow" },
-      "rationale": "Tarda en empezar a responder; si se repite demasiado pronto, se interrumpe lo que estaba pensando.",
-      "script": [
-        "Da la instrucción una vez: \"Saca tu cuaderno de lectura.\"",
-        "Cuenta en silencio hasta cinco antes de decir algo más.",
-        "Si no ha empezado, repite con las mismas palabras.",
-        "Evita agregar explicaciones nuevas en ese momento."
-      ],
-      "watchFor": "Empieza a moverse durante esa espera sin que repitas."
-    },
-    {
-      "id": "s17",
-      "title": "Rutinas que siempre se dicen igual",
-      "setting": "home",
-      "trigger": { "pace": "slow", "span": "one" },
-      "rationale": "Las rutinas que siempre se dicen con las mismas palabras le piden menos esfuerzo para escuchar y recordar.",
-      "script": [
-        "Elige una rutina diaria, por ejemplo, la de la mañana.",
-        "Dila siempre igual: \"Primero, los zapatos.\"",
-        "Espera y luego: \"Ahora, la mochila.\"",
-        "Con los días, deja que te diga qué sigue: \"¿Qué sigue?\""
-      ],
-      "watchFor": "Dice el siguiente paso de la rutina por su cuenta."
+      "watchFor": "Con el paso de los días, pide la repetición menos veces.",
+      "evidence": "theoretical",
+      "evidenceNote": "La guía recomienda repetir la información importante; pedir que la diga en voz alta es una adaptación del equipo. No se ha probado por sí sola.",
+      "source": "Gathercole y Alloway 2007, pp. 17-18",
+      "author": null,
+      "approvedOn": null,
+      "version": 1
     },
     {
       "id": "s18",
       "title": "Di lo que sí, no lo que no",
       "setting": "both",
       "trigger": { "negationHandling": "struggles" },
-      "rationale": "Las instrucciones con \"no\" le cuestan; decir directamente lo que tiene que hacer es más claro.",
+      "codes": ["E6"],
+      "rationale": "Di directamente lo que hay que hacer, en lugar de lo que no hay que hacer.",
       "script": [
         "En lugar de \"No corras\", di: \"Camina.\"",
         "En lugar de \"No tomes la azul\", di: \"Toma la roja.\"",
         "Revisa las instrucciones que más usas y cambia las que empiezan con \"no\"."
       ],
-      "watchFor": "Responde a la primera, sin quedarse en lo que no debía hacer."
+      "watchFor": "Responde a la primera, sin quedarse en lo que no debía hacer.",
+      "evidence": "indirect",
+      "evidenceNote": "Un estudio piloto con niños de 11 a 12 años encontró respuestas más lentas y más errores con instrucciones negadas. No se ha probado esta estrategia por sí sola.",
+      "source": "Dudschig et al. 2021",
+      "author": null,
+      "approvedOn": null,
+      "version": 1
     },
     {
       "id": "s19",
       "title": "Una condición a la vez",
       "setting": "classroom",
       "trigger": { "negationHandling": "struggles", "pace": "slow" },
-      "rationale": "Las instrucciones con \"si... si no\" le cuestan; separarlas en preguntas cortas las hace más fáciles.",
+      "codes": ["E6"],
+      "rationale": "Separa una instrucción con condición en preguntas cortas, una a la vez.",
       "script": [
         "En lugar de \"Si terminaste, guarda; si no, sigue\", pregunta: \"¿Terminaste?\"",
         "Si dice que sí: \"Entonces guarda tu cuaderno.\"",
         "Si dice que no: \"Entonces sigue trabajando.\""
       ],
-      "watchFor": "Responde bien a cada pregunta y, con el tiempo, a la instrucción completa."
-    },
-    {
-      "id": "s20",
-      "title": "Asegura su atención antes de hablar",
-      "setting": "both",
-      "trigger": {},
-      "rationale": "Una instrucción dada sin su atención se pierde desde el principio.",
-      "script": [
-        "Acércate y di su nombre.",
-        "Espera a que te mire.",
-        "Da la instrucción con calma y en pocas palabras.",
-        "Comprueba: \"¿Qué vas a hacer?\""
-      ],
-      "watchFor": "Te mira cuando dices su nombre y escucha sin que tengas que insistir."
+      "watchFor": "Responde bien a cada pregunta y, con el tiempo, a la instrucción completa.",
+      "evidence": "theoretical",
+      "evidenceNote": "Adaptación de la recomendación de la guía de usar oraciones simples y evitar cláusulas incrustadas; su uso para condiciones es propuesta del equipo y no se ha probado.",
+      "source": "Gathercole y Alloway 2007, p. 16",
+      "author": null,
+      "approvedOn": null,
+      "version": 1
     }
   ]
 }

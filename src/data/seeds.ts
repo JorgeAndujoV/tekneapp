@@ -102,19 +102,19 @@ export const SEEDS: Seed[] = [
         toTry: [
           "- Di los pasos en el orden en que se hacen. En lugar de \"Antes de salir al recreo, guarda tu libro\", di: \"Guarda tu libro. Luego sal al recreo.\" Usa siempre \"primero\" y \"luego\". Si lo hace en otro orden, repite igual: \"Primero esto, luego aquello.\"",
           "- Pausa de orden: ¿qué va primero? Antes de la instrucción, di: \"Escucha todo y luego te pregunto.\" Da la instrucción: \"Guarda los colores y luego saca la regla.\" Pregunta: \"¿Qué vas a hacer primero?\" Cuando responda bien: \"Eso. Ahora sí, empieza.\"",
-          "- Manos quietas mientras escuchas. Acuerden una señal: \"Cuando yo junte las manos, tú juntas las tuyas y escuchas.\" Junta las manos, da la instrucción completa y, al terminar, di: \"Ya. Ahora sí.\" Si empieza antes, junta las manos otra vez, sin regañar.",
+          "- Enseña a pedir que repitan. Enséñale una frase: \"Si no te acuerdas, puedes decir: ¿me lo repites?\" Practíquenla en un momento tranquilo, como un juego. Cuando la use, responde con gusto: \"Claro, te lo repito.\" Repite la instrucción con las mismas palabras.",
         ].join("\n"),
         watchFor:
-          "Espera tu señal antes de moverse sin que se lo recuerdes. Responde a la pregunta de qué va primero antes de moverse, y hace los pasos en el orden correcto sin que tengas que detenerle.",
+          "Pide que le repitan cuando se pierde, sin que se lo sugieras. Responde a la pregunta de qué va primero antes de moverse, y hace los pasos en el orden correcto sin que tengas que detenerle.",
       },
       home: {
         observed: EARLY_OBSERVED,
         toTry: [
           "- Di los pasos en el orden en que se hacen. En lugar de \"Antes de cenar, lávate las manos\", di: \"Lávate las manos. Luego siéntate a cenar.\" Usa siempre \"primero\" y \"luego\". Si lo hace en otro orden, repite igual: \"Primero esto, luego aquello.\"",
-          "- Manos quietas mientras escuchas. Acuerden una señal: \"Cuando yo junte las manos, tú juntas las tuyas y escuchas.\" Junta las manos, da la instrucción completa y, al terminar, di: \"Ya. Ahora sí.\" Si empieza antes, junta las manos otra vez, sin regañar, y repite la instrucción.",
+          "- Decirla antes de hacerla. Di: \"Te voy a pedir algo. Escucha hasta el final.\" Da la instrucción: \"Lleva tu plato a la cocina y trae una servilleta.\" Pide: \"Dímela antes de ir.\" Si le falta un paso, repítelo con calma y pide que la diga otra vez.",
         ].join("\n"),
         watchFor:
-          "Espera tu señal antes de moverse sin que se lo recuerdes, y hace los pasos en el orden correcto sin que tengas que detenerle.",
+          "Dice la instrucción completa sin que se lo pidas, y hace los pasos en el orden correcto sin que tengas que detenerle.",
       },
     },
   },
