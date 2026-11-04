@@ -63,21 +63,40 @@ function isSubsequence(response: string[], expected: string[]): boolean {
   return matched === response.length;
 }
 
+function containsWrongCard(response: string[], expected: string[]): boolean {
+  const remaining = [...expected];
+  for (const id of response) {
+    const index = remaining.indexOf(id);
+    if (index < 0) return true;
+    remaining.splice(index, 1);
+  }
+  return false;
+}
+
 function unmatched(response: string[], expected: string[]): { foreign: string[]; missing: string[] } {
   const missing = [...expected];
   const foreign: string[] = [];
   for (const id of response) {
-    const at = missing.indexOf(id);
-    if (at < 0) foreign.push(id);
-    else missing.splice(at, 1);
+    const index = missing.indexOf(id);
+    if (index < 0) foreign.push(id);
+    else missing.splice(index, 1);
   }
   return { foreign, missing };
 }
 
 function wrongAttribute(foreign: string[], missing: string[]): WrongAttribute {
-  const colour = foreign.some((id, i) => id[0] !== missing[i]?.[0]);
-  const shape = foreign.some((id, i) => id[2] !== missing[i]?.[2]);
-  return colour && shape ? "colourAndShape" : colour ? "colour" : "shape";
+  const animal = foreign.some((id, index) => id.split("-")[1] !== missing[index]?.split("-")[1]);
+  const colour = foreign.some((id, index) => id.split("-")[0] !== missing[index]?.split("-")[0]);
+  return animal && colour ? "animalAndColour" : animal ? "animal" : "colour";
+}
+
+function confusedAttribute(trialCodes: TrialCodes[]): WrongAttribute | null {
+  const counts: Partial<Record<WrongAttribute, number>> = {};
+  for (const trial of trialCodes) {
+    if (trial.wrongAttribute) counts[trial.wrongAttribute] = (counts[trial.wrongAttribute] ?? 0) + 1;
+  }
+  const [best] = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  return best && best[1] >= DOMINANT_MIN_TRIALS ? (best[0] as WrongAttribute) : null;
 }
 
 const sameSequence = (a: string[], b: string[]) => a.length === b.length && a.every((id, i) => id === b[i]);
@@ -95,16 +114,16 @@ export function codeTrial(result: TrialResult, spec: TrialSpec, previous?: Trial
   if (response.length === 0) {
     codes.push("E8");
   } else if (!sameSequence(response, expected)) {
-    const { foreign, missing } = unmatched(response, expected);
     if (short && response.every((id, i) => id === expected[i])) {
       codes.push("E1");
     } else if (short && isSubsequence(response, expected)) {
       codes.push("E2");
-    } else if (foreign.length === 0) {
+    } else if (!containsWrongCard(response, expected)) {
       codes.push("E3");
       if (spec.dimension === "reversed") coded.reversedItem = true;
     } else {
       codes.push("E4");
+      const { foreign, missing } = unmatched(response, expected);
       coded.wrongAttribute = wrongAttribute(foreign, missing);
     }
     if (previous && sameSequence(response, previous.expected) && (codes[0] === "E3" || codes[0] === "E4")) {
@@ -115,13 +134,6 @@ export function codeTrial(result: TrialResult, spec: TrialSpec, previous?: Trial
   if (spec.dimension === "negation" && codes.length > 0) codes.push("E6");
   if (result.taps.some((tap) => tap.t < 0)) codes.push("E7");
   return coded;
-}
-
-function confusedAttribute(trialCodes: TrialCodes[]): WrongAttribute | null {
-  const counts: Partial<Record<WrongAttribute, number>> = {};
-  for (const trial of trialCodes) if (trial.wrongAttribute) counts[trial.wrongAttribute] = (counts[trial.wrongAttribute] ?? 0) + 1;
-  const [best] = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-  return best && best[1] >= DOMINANT_MIN_TRIALS ? (best[0] as WrongAttribute) : null;
 }
 
 function dominantCode(counts: Record<ErrorCode, number>): ErrorCode | null {
@@ -178,13 +190,12 @@ export function computeProfile(session: Session, trials: TrialSpec[]): Profile {
     return first ? [first.t] : [];
   });
 
+  const forward = accuracy.twoActions;
+  const reversed = accuracy.reversed;
   const trialCodes = scored.map(({ spec, result }, i) => codeTrial(result, spec, scored[i - 1]?.spec));
   const codeCounts = Object.fromEntries(
     ERROR_CODES.map((code) => [code, trialCodes.filter((t) => t.codes.includes(code)).length]),
   ) as Record<ErrorCode, number>;
-
-  const forward = accuracy.twoActions;
-  const reversed = accuracy.reversed;
 
   const measures: Measures = {
     actionSpan: Math.max(0, ...ladderAccuracy.filter((l) => l.accuracy > 0.5).map((l) => l.count)),
@@ -220,7 +231,7 @@ export function computeProfile(session: Session, trials: TrialSpec[]): Profile {
   if (flags.some((flag) => flag !== "home_language")) flags.push("priority_referral");
 
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     sessionId: session.sessionId,
     childCode: session.childCode,
     grade: 1,

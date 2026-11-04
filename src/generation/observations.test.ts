@@ -38,7 +38,7 @@ describe("observation text", () => {
   it("offers examples that mix mild and serious things and are all usable as they are", () => {
     expect(OBSERVATION_EXAMPLES.length).toBeGreaterThanOrEqual(6);
     for (const example of OBSERVATION_EXAMPLES) expect(finalObservation(example), example).toBe(example);
-    expect(OBSERVATION_EXAMPLES).toContain("se rió mucho con las figuras");
+    expect(OBSERVATION_EXAMPLES).toContain("se rió mucho con los animales");
     expect(OBSERVATION_EXAMPLES).toContain("me miraba la boca cuando le hablaba");
   });
 });

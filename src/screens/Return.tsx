@@ -1,15 +1,9 @@
-import { useEffect, useState } from "react";
-import { playClip, stopClip } from "../task/audio";
+import { useState } from "react";
 import { cleanObservation, OBSERVATION_EXAMPLES, OBSERVATION_MAX } from "../generation/observations";
 import { suspicious } from "../generation/context";
 
 export default function Return({ onContinue }: { onContinue: (observation: string) => void }) {
   const [text, setText] = useState("");
-
-  useEffect(() => {
-    playClip("audio/ui/done.mp3");
-    return stopClip;
-  }, []);
 
   return (
     <main className="mx-auto flex min-h-full max-w-md flex-col gap-8 px-6 py-10">

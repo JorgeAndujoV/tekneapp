@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Profile } from "../types/profile";
 import type { ManualSections, ManualVersion, RailedManual, Strategy } from "../types/manual";
-import { TRIALS } from "../data/trials";
+import type { Trial } from "../data/trials";
 import { applyRails } from "../generation/applyRails";
 import { GenerationError, generateManual, strategiesFor } from "../generation/generateManual";
 import type { Context } from "../generation/context";
@@ -23,10 +23,11 @@ interface Props {
   seedManual: ManualSections | null;
   situations: Context;
   observation: string;
+  trials: Trial[];
   onRestart: () => void;
 }
 
-export default function Manual({ profile, seedManual, situations, observation, onRestart }: Props) {
+export default function Manual({ profile, seedManual, situations, observation, trials, onRestart }: Props) {
   // a seeded demo renders its pre-written manual straight away, with no network call
   const [state, setState] = useState<State>(() =>
     seedManual ? { status: "ready", manual: applyRails(seedManual, profile.flags, strategiesFor(profile)) } : { status: "loading" },
@@ -120,7 +121,7 @@ export default function Manual({ profile, seedManual, situations, observation, o
       <details className="mt-10 text-lg print:hidden">
         <summary className="cursor-pointer font-medium">Instrucciones que escuchó</summary>
         <ol className="mt-3 list-decimal space-y-1 pl-6 text-muted">
-          {TRIALS.map((trial) => (
+          {trials.map((trial) => (
             <li key={trial.id}>{trial.text}</li>
           ))}
         </ol>

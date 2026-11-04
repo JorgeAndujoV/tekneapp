@@ -3,7 +3,7 @@ import { suspicious } from "./context";
 export const OBSERVATION_MAX = 200;
 
 export const OBSERVATION_EXAMPLES = [
-  "se rió mucho con las figuras",
+  "se rió mucho con los animales",
   "me miraba la boca cuando le hablaba",
   "pidió agua a la mitad de la actividad",
   "se movía mucho en la silla",

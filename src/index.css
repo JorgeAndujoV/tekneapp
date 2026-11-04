@@ -41,3 +41,10 @@ body {
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   -webkit-tap-highlight-color: transparent;
 }
+
+button,
+a,
+summary,
+[role="button"] {
+  cursor: url("./assets/hand-cursor.svg") 11 4, pointer;
+}

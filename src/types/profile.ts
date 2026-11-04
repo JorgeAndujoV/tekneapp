@@ -33,8 +33,6 @@ export interface TrialSpec {
   id: string;
   dimension: Dimension;
   actionCount: number;
-  audioFile: string;
-  audioMs: number;
   /** Ordered card ids making up a fully correct response. */
   expected: string[];
 }
@@ -46,7 +44,7 @@ export interface TrialSpec {
 export interface Tap {
   /** null = tap landed outside any card. */
   cardId: string | null;
-  /** ms from END of audio. Negative means the child started early. */
+  /** ms from the END of the spoken instruction. Negative means the child started early. */
   t: number;
 }
 
@@ -99,7 +97,7 @@ export const SEVERITY: ErrorCode[] = ["E8", "E1", "E2", "E3", "E4", "E6", "E5"];
 
 export const DOMINANT_MIN_TRIALS = 2;
 
-export type WrongAttribute = "colour" | "shape" | "colourAndShape";
+export type WrongAttribute = "animal" | "colour" | "animalAndColour";
 
 export interface TrialCodes {
   trialId: string;
@@ -123,7 +121,7 @@ export interface Measures {
   orderCost: number | null;
 
   medianFirstTapMs: number | null;
-  prematureStarts: number; // taps before audio ended
+  prematureStarts: number; // taps before the spoken instruction ended
   selfCorrections: number; // answer changes: deselections plus replacements of the last pick
   replaysRequested: number;
   replaysThenCorrect: number;
@@ -190,7 +188,7 @@ export type Reliability =
 // ---------------------------------------------------------------------------
 
 export interface Profile {
-  schemaVersion: 2;
+  schemaVersion: 3;
   sessionId: string;
   childCode: string;
   grade: 1;
@@ -278,7 +276,7 @@ const emptyAccuracy: Record<Dimension, number | null> = {
 
 /** Breaks at three actions, order is fine, asks for help. */
 export const FIXTURE_TYPICAL_WITH_SHORT_SPAN: Profile = {
-  schemaVersion: 2,
+  schemaVersion: 3,
   sessionId: "demo-001",
   childCode: "NL-1A-07",
   grade: 1,
@@ -321,7 +319,7 @@ export const FIXTURE_TYPICAL_WITH_SHORT_SPAN: Profile = {
 
 /** Same span, never asks, starts before the instruction ends. Opposite manual. */
 export const FIXTURE_SAME_SPAN_NO_MONITORING: Profile = {
-  schemaVersion: 2,
+  schemaVersion: 3,
   sessionId: "demo-002",
   childCode: "NL-1A-11",
   grade: 1,
@@ -364,7 +362,7 @@ export const FIXTURE_SAME_SPAN_NO_MONITORING: Profile = {
 
 /** Quit at trial four. The manual must say so and recommend nothing. */
 export const FIXTURE_INSUFFICIENT: Profile = {
-  schemaVersion: 2,
+  schemaVersion: 3,
   sessionId: "demo-003",
   childCode: "NL-1B-02",
   grade: 1,

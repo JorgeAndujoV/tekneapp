@@ -1,23 +1,35 @@
-// one shared player: once a tap has started it, mobile browsers let it keep playing later clips
+// one shared player keeps voice clips in order and lets a new trial stop the previous sequence
 const player = new Audio();
 let current = 0;
 let release: (() => void) | null = null;
 
-// resolves when the clip ends, fails to load, or is stopped, so the task never waits forever
-export function playClip(path: string): Promise<void> {
+export async function playClips(paths: string[]): Promise<void> {
   stopClip();
   const token = ++current;
-  return new Promise((resolve) => {
-    release = resolve;
-    const finish = () => {
+  for (const path of paths) {
+    if (token !== current) return;
+    await startClip(path, token);
+  }
+}
+
+function startClip(path: string, token: number): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const finish = (error?: Error) => {
       if (token !== current) return;
+      release = null;
+      if (error) reject(error);
+      else resolve();
+    };
+    release = () => {
       release = null;
       resolve();
     };
-    player.onended = finish;
-    player.onerror = finish;
+    player.onended = () => finish();
+    player.onerror = () => finish(new Error(`No se pudo cargar el audio "${path}".`));
     player.src = import.meta.env.BASE_URL + path;
-    player.play().catch(finish);
+    player.play().catch((error: unknown) =>
+      finish(error instanceof Error ? error : new Error(`No se pudo reproducir "${path}".`)),
+    );
   });
 }
 

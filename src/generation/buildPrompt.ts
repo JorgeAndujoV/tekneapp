@@ -18,16 +18,16 @@ const PATTERN_WORDS: Partial<Record<ErrorCode, string>> = {
   E1: "hiciera los primeros pasos de una instrucción y se detuviera sin hacer el resto",
   E2: "se saltara un paso y hiciera los siguientes",
   E3: "hiciera los pasos correctos en otro orden",
-  E4: "tomara una figura distinta a la pedida",
+  E4: "tomara una tarjeta distinta a la pedida",
   E5: "repitiera la respuesta de la instrucción anterior",
   E6: "se equivocara en las instrucciones que llevan \"no\" o \"si\"",
   E8: "no respondiera",
 };
 
 const MIXES_UP_WORDS = {
-  colour: "Al tomar una figura distinta, solía cambiar el color y acertar la forma.",
-  shape: "Al tomar una figura distinta, solía cambiar la forma y acertar el color.",
-  colourAndShape: "Al tomar una figura distinta, solía cambiar tanto el color como la forma.",
+  animal: "Al tomar una tarjeta distinta, solía conservar el color, pero cambiar el animal.",
+  colour: "Al tomar una tarjeta distinta, solía conservar el animal, pero cambiar el color.",
+  animalAndColour: "Al tomar una tarjeta distinta, solía cambiar tanto el animal como el color.",
 };
 
 export function describeProfile(d: Descriptors): string[] {
@@ -61,7 +61,6 @@ export function describeProfile(d: Descriptors): string[] {
   const others = d.otherPatterns.flatMap((code) => PATTERN_WORDS[code] ?? []);
   if (others.length > 0) lines.push(`También se repitió, con menos frecuencia, que ${others.join("; que ")}.`);
   if (d.mixesUp) lines.push(MIXES_UP_WORDS[d.mixesUp]);
-
   return lines;
 }
 
@@ -129,7 +128,7 @@ export function buildPrompt(
     cautions.push("Este resultado lleva un aviso de validez que se añade aparte: no lo menciones, pero no presentes las observaciones como seguras.");
 
   const user = [
-    "Observaciones de una tarea breve en la que escuchó instrucciones y tocó figuras en una pantalla:",
+    "Observaciones de una tarea breve en la que escuchó instrucciones y tocó tarjetas con animales y colores:",
     ...describeProfile(view.descriptors).map((line) => `- ${line}`),
     ...(cautions.length ? ["", ...cautions] : []),
     ...(wantsExamples

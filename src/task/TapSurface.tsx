@@ -1,18 +1,21 @@
 import { useRef, useState } from "react";
-import { CARDS } from "../data/cards";
+import { cardsForAnimals } from "../data/cards";
+import type { Animal } from "../data/animals";
 
 interface Props {
   onTap: (cardId: string | null) => void;
   selectedIds: string[];
+  animals: Animal[];
 }
 
 // the same brief press effect on every card, so it never hints at right or wrong
-export default function TapSurface({ onTap, selectedIds }: Props) {
+export default function TapSurface({ onTap, selectedIds, animals }: Props) {
   const [pressed, setPressed] = useState<string | null>(null);
   const timer = useRef<number | undefined>(undefined);
+  const cards = cardsForAnimals(animals);
   const selectionLabels = selectedIds
     .map((id, index) => {
-      const card = CARDS.find((item) => item.id === id);
+      const card = cards.find((item) => item.id === id);
       return card ? `${index + 1}. ${card.name}` : null;
     })
     .filter((label): label is string => label !== null);
@@ -29,7 +32,7 @@ export default function TapSurface({ onTap, selectedIds }: Props) {
         className="grid min-h-0 flex-1 touch-manipulation select-none grid-cols-2 grid-rows-3 gap-4 p-4"
         onPointerDown={() => onTap(null)}
       >
-        {CARDS.map((card) => {
+        {cards.map((card) => {
           const selectionOrder = selectedIds.indexOf(card.id);
           const isSelected = selectionOrder !== -1;
           return (
@@ -43,19 +46,17 @@ export default function TapSurface({ onTap, selectedIds }: Props) {
                 acknowledge(card.id);
                 onTap(card.id);
               }}
-              className={`relative flex min-h-[88px] min-w-[88px] items-center justify-center rounded-3xl p-2 outline-none transition-transform duration-150 ${
+              style={{ backgroundColor: card.color }}
+              className={`relative flex min-h-[88px] min-w-[88px] flex-col items-center justify-center gap-1 rounded-3xl border-2 border-black/15 p-2 shadow-sm outline-none transition-transform duration-150 ${
                 pressed === card.id ? "scale-90" : "scale-100"
               }`}
             >
-              <svg viewBox="0 0 100 100" className="h-full w-full" aria-hidden="true">
-                {card.shape === "circle" ? (
-                  <circle cx="50" cy="50" r="44" fill={card.color} stroke="rgba(0,0,0,0.18)" strokeWidth="1.5" />
-                ) : (
-                  <rect x="8" y="8" width="84" height="84" rx="6" fill={card.color} stroke="rgba(0,0,0,0.18)" strokeWidth="1.5" />
-                )}
-              </svg>
+              <span className="rounded-full bg-white/80 px-2 py-1 text-[clamp(2.5rem,10vw,4.5rem)] leading-none" aria-hidden="true">
+                {card.emoji}
+              </span>
+              <span className="rounded-lg bg-white/85 px-2 py-0.5 text-sm font-bold text-ink">{card.name}</span>
               {isSelected && (
-                <span className="absolute inset-0 flex items-center justify-center text-4xl font-bold text-white [text-shadow:0_2px_5px_rgba(0,0,0,0.8)]">
+                <span className="absolute right-2 top-2 flex h-9 w-9 items-center justify-center rounded-full bg-white text-xl font-bold text-ink shadow">
                   {selectionOrder + 1}
                 </span>
               )}
@@ -74,7 +75,7 @@ export default function TapSurface({ onTap, selectedIds }: Props) {
             </ul>
           </div>
         ) : (
-          <p className="text-lg text-muted">Toca las figuras en el orden que escuchaste.</p>
+          <p className="text-lg text-muted">Toca los animales y colores en el orden que escuchaste.</p>
         )}
       </div>
     </div>

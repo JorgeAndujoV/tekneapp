@@ -2,7 +2,7 @@
 
 A short listening task for first graders and a generator of practical support manuals for the adults around them (teachers and families in Mexico).
 
-A child hears spoken instructions of growing length and taps coloured shapes. The app measures what happened, then writes a support manual in Spanish for the adult: a classroom version and a home version.
+A child hears spoken instructions of growing length and taps animal cards. The adult chooses two favorite animals on the start screen; each appears in red, blue and yellow. Instructions are read aloud in Spanish with the browser's speech synthesis. The app measures what happened, then writes a support manual in Spanish for the adult: a classroom version and a home version.
 
 ## Intended use
 
@@ -15,13 +15,13 @@ The task is informed by the Token Test tradition (spoken commands that ask a chi
 The app has two halves, and they stay separate:
 
 - **Measurement** (`src/scoring/`): deterministic rules and arithmetic only. `computeProfile()` turns the recorded taps into a `Profile`.
-- **Generation** (`src/generation/`): one call to a language model, made only after the task ends. The model receives coarse labels from `promptView(profile)`, never a number: what the child did, the patterns that repeated most, and whether wrong cards differed by colour or by shape. It writes the "Lo que observamos" paragraph around them. If the adult described a situation, it also chooses among the strategies that already serve the child's pattern and adapts only their examples. The strategy steps are never written by the model.
+- **Generation** (`src/generation/`): one call to a language model, made only after the task ends. The model receives coarse labels from `promptView(profile)`, never a number: what the child did, the patterns that repeated most, and whether wrong cards changed the animal, the colour, or both. It writes the "Lo que observamos" paragraph around them. If the adult described a situation, it also chooses among the strategies that already serve the child's pattern and adapts only their examples. The strategy steps are never written by the model.
 
 `src/types/profile.ts` is the fixed contract between the two halves.
 
 ### What the child does
 
-During each instruction, selected cards display their position in the answer order. Tapping a selected card removes it; tapping it again adds it at the end. The adult or child advances explicitly with **Siguiente** (or **Terminar** on the final item). The self-correction measure counts only explicit deselections, not guesses based on early and later taps.
+During each instruction, selected animal-and-colour cards display their position in the answer order. Tapping a selected card removes it; tapping it again adds it at the end. The adult or child advances explicitly with **Siguiente** (or **Terminar** on the final item). The self-correction measure counts only explicit deselections, not guesses based on early and later taps.
 
 ### What the measurement produces
 
@@ -32,7 +32,7 @@ Each answer gets zero or more observable codes. They describe what the child did
 | E1 | Stops early: did the first steps right, then stopped |
 | E2 | Skips a step: did later steps but left one out |
 | E3 | Wrong order: the right cards in the wrong order (reversed "before/after" items are marked) |
-| E4 | Wrong object or attribute: at least one wrong card (colour, shape or both is recorded) |
+| E4 | Wrong card: at least one card differs by animal, colour or both |
 | E5 | Repeats the previous trial's answer |
 | E6 | Misses "no" or "if": any error on the negation and conditional items |
 | E7 | Starts before the end: selects while the audio is still playing |
@@ -75,7 +75,7 @@ When a result cannot be read at face value, the manual contains only fixed notic
 
 The notices name a hearing check, a language assessment or a specialist, as relevant.
 
-Two inputs from the start screen work differently. A **red flag** (lost skills, self-harm, signs of abuse) puts a fixed notice at the top, and the manual still generates. A **home language other than Spanish** adds a caution only. Neither answer is sent to the model.
+Two inputs from the start screen work differently. A **red flag** (lost skills, self-harm, signs of abuse) puts a fixed notice at the top, and the manual still generates. A **home language other than Spanish** adds a caution only. Neither answer is sent to the model. Favorite animal choices stay in page memory, are not sent to the model, and are cleared when the page is reloaded or closed.
 
 ### Rails
 
