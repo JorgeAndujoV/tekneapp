@@ -215,10 +215,15 @@ export function promptView(p: Profile): {
 
 // ---------------------------------------------------------------------------
 // 7. Banding — measures to descriptors. Pure, testable, advisor-tunable.
-//    THESE THRESHOLDS ARE PLACEHOLDERS. R4 replaces them.
 // ---------------------------------------------------------------------------
 
-const STRUGGLE_BELOW = 0.5;
+export const STRUGGLE_BELOW = 0.5;
+export const EARLY_START_TRIALS = 3;
+export const REPLAYS_OFTEN_ABOVE = 0.5;
+export const MOST_FAILED_BELOW = 0.5;
+export const NO_RESPONSE_FROM = 1 / 3;
+
+export const replayShare = (m: Measures) => m.replaysRequested / Math.max(1, m.trialsAttempted);
 
 function holds(acc: number | null): Holds {
   if (acc === null) return "unknown";
@@ -237,13 +242,9 @@ export function describe(m: Measures): Descriptors {
             : "one",
     orderHandling: holds(m.accuracy.reversed),
     negationHandling: holds(m.accuracy.negation),
-    startsEarly: m.prematureStarts >= 3,
+    startsEarly: m.prematureStarts >= EARLY_START_TRIALS,
     asksForRepeats:
-      m.replaysRequested === 0
-        ? "never"
-        : m.replaysRequested <= 3
-          ? "sometimes"
-          : "often",
+      m.replaysRequested === 0 ? "never" : replayShare(m) > REPLAYS_OFTEN_ABOVE ? "often" : "sometimes",
   };
 }
 

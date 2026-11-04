@@ -12,11 +12,17 @@ import type {
   TrialSpec,
   WrongAttribute,
 } from "../types/profile";
-import { assessReliability, describe, DOMINANT_MIN_TRIALS, ERROR_CODES, SEVERITY } from "../types/profile";
-
-const MOST_FAILED_BELOW = 0.5;
-const REPLAYS_OFTEN_ABOVE = 0.5;
-const NO_RESPONSE_FROM = 1 / 3;
+import {
+  assessReliability,
+  describe,
+  DOMINANT_MIN_TRIALS,
+  ERROR_CODES,
+  MOST_FAILED_BELOW,
+  NO_RESPONSE_FROM,
+  REPLAYS_OFTEN_ABOVE,
+  replayShare,
+  SEVERITY,
+} from "../types/profile";
 
 const DIMENSIONS: Dimension[] = ["baseline", "twoActions", "reversed", "threeActions", "negation"];
 
@@ -199,7 +205,7 @@ export function computeProfile(session: Session, trials: TrialSpec[]): Profile {
   if (baseline.length > 0 && baseline.every((s) => s.outcome !== "correct")) flags.push("baseline_failed");
   const correctShare = share(scored.filter((s) => s.outcome === "correct").length);
   if (enough && correctShare < MOST_FAILED_BELOW && baseline.some((s) => s.outcome !== "correct")) flags.push("most_failed");
-  if (enough && share(measures.replaysRequested) > REPLAYS_OFTEN_ABOVE) flags.push("replays_often");
+  if (enough && replayShare(measures) > REPLAYS_OFTEN_ABOVE) flags.push("replays_often");
   if (enough && share(codeCounts.E8) >= NO_RESPONSE_FROM) flags.push("many_no_response");
   if (measures.trialsAttempted < 6) flags.push("session_abandoned");
   if (session.homeLanguageNotSpanish) flags.push("home_language");
