@@ -234,7 +234,7 @@ describe("pipeline with the live model", () => {
       `| Textos con cifras que llegaron a la pantalla | ${sum((r) => r.digitOnScreen)} |`,
       `| El ejemplo adaptado conserva la estrategia (juzgado por ${process.env.BENCH_JUDGE_MODEL ?? "el mismo modelo"}) | ${JUDGE ? percent(sum((r) => r.judgedKeeps), sum((r) => r.judged)) : "no medido"} |`,
       "",
-      "Límites: son situaciones inventadas, no niños. Mide si el sistema obedece sus reglas y si el modelo conserva la estrategia según otro juicio del mismo modelo. No mide si la adaptación es clínicamente buena ni si ayuda a un niño. Una persona clínica debe revisar una muestra.",
+      "Límites: son situaciones inventadas, no niños. Mide si el sistema obedece sus reglas y si el modelo conserva la estrategia según el juicio de un modelo. No mide si la adaptación es clínicamente buena ni si ayuda a un niño. Una persona clínica debe revisar una muestra.",
     ];
 
     mkdirSync("bench/results", { recursive: true });
