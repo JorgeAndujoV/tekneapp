@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { SEEDS, type Seed } from "../data/seeds";
 import type { Intake } from "../types/profile";
@@ -21,6 +22,8 @@ export default function Start({ onBegin, onDemo }: Props) {
   const [redFlags, setRedFlags] = useState(RED_FLAG_QUESTIONS.map(() => false));
   const [otherLanguage, setOtherLanguage] = useState(false);
   const [consent, setConsent] = useState(false);
+  const [privacyRead, setPrivacyRead] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
   const [situations, setSituations] = useState<Context>(NO_CONTEXT);
   const valid = isValidChildCode(code);
 
@@ -36,36 +39,37 @@ export default function Start({ onBegin, onDemo }: Props) {
         className="flex flex-col gap-3"
         onSubmit={(event) => {
           event.preventDefault();
-          if (valid && consent)
+          if (valid && consent && privacyRead)
             onBegin(code, { redFlag: redFlags.some(Boolean), homeLanguageNotSpanish: otherLanguage }, finalContext(situations));
         }}
       >
         <section className="rounded-2xl border-2 border-line bg-white p-4 text-base leading-relaxed">
-          <h2 className="mb-2 text-lg font-semibold">Antes de empezar: participación y datos</h2>
-          <p>
-            La participación es voluntaria. La niña o el niño puede parar en cualquier momento, sin consecuencias.
-            Esta actividad no es una evaluación clínica ni da un diagnóstico.
-          </p>
-          <p className="mt-2">
-            La sesión y el código se mantienen temporalmente en la memoria de esta página; no se guardan en una cuenta
-            ni en una base de datos. Al recargar o cerrar la página se borran. El código aparecerá en el manual impreso.
-          </p>
-          <p className="mt-2">
-            Para generar el manual, se envían al proveedor del modelo de lenguaje observaciones resumidas de la
-            actividad, avisos de validez y estrategias. No se envían el código ni los toques individuales. El
-            proveedor procesa esa solicitud según sus propias condiciones; no ingreses nombres ni otros datos que
-            identifiquen directamente a la niña o al niño.
-          </p>
-          <p className="mt-2">
-            Si describes una situación del aula o de la casa, o escribes lo que observaste al terminar la actividad,
-            esos textos también se envían al proveedor para personalizar el manual. No escribas nombres ni
-            diagnósticos. Los números se quitan automáticamente.
-          </p>
-          <p className="mt-2">
-            La app no conserva constancia de quién aceptó. Si la escuela necesita guardar un consentimiento, debe
-            documentarlo por separado según sus procedimientos.
-          </p>
+          <h2 className="mb-3 text-lg font-semibold">Antes de comenzar</h2>
+          <ul className="list-disc space-y-2 pl-5">
+            <li>La participación es voluntaria y puede detenerse en cualquier momento.</li>
+            <li>La actividad no es una evaluación clínica ni proporciona diagnósticos.</li>
+            <li>La información de la sesión se mantiene temporalmente en esta página.</li>
+            <li>Para generar el manual, se envían observaciones resumidas y los textos opcionales al proveedor del modelo de lenguaje.</li>
+            <li>No ingreses nombres, diagnósticos ni datos que identifiquen a la niña o al niño.</li>
+          </ul>
+          <button
+            type="button"
+            className="mt-4 font-medium text-accent underline"
+            onClick={() => setShowPrivacy(true)}
+          >
+            Leer aviso completo de privacidad y consentimiento
+          </button>
         </section>
+
+        <label className="flex items-start gap-3 rounded-xl py-2 text-base leading-relaxed">
+          <input
+            type="checkbox"
+            checked={privacyRead}
+            onChange={(event) => setPrivacyRead(event.target.checked)}
+            className="mt-1 h-5 w-5 shrink-0 accent-accent"
+          />
+          <span>Confirmo que he leído y comprendido el aviso de privacidad.</span>
+        </label>
 
         <label className="flex items-start gap-3 rounded-xl py-2 text-base leading-relaxed">
           <input
@@ -148,7 +152,7 @@ export default function Start({ onBegin, onDemo }: Props) {
             En casa se habla otro idioma, o está aprendiendo español
           </label>
         </fieldset>
-        <button type="submit" disabled={!valid || !consent} className="btn-primary mt-2">
+        <button type="submit" disabled={!valid || !consent || !privacyRead} className="btn-primary mt-2">
           Comenzar
         </button>
       </form>
@@ -166,6 +170,59 @@ export default function Start({ onBegin, onDemo }: Props) {
           </button>
         )}
       </div>
+
+      {showPrivacy && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="privacy-title"
+            className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 text-base leading-relaxed shadow-xl"
+          >
+            <div className="mb-4 flex items-start justify-between gap-4">
+              <h2 id="privacy-title" className="text-xl font-semibold">
+                Privacidad y consentimiento
+              </h2>
+              <button
+                type="button"
+                aria-label="Cerrar aviso"
+                className="text-2xl text-muted"
+                onClick={() => setShowPrivacy(false)}
+              >
+                ×
+              </button>
+            </div>
+            <h3 className="mb-2 text-lg font-semibold">Antes de empezar: participación y datos</h3>
+            <p>
+              La participación es voluntaria. La niña o el niño puede parar en cualquier momento, sin consecuencias.
+              Esta actividad no es una evaluación clínica ni da un diagnóstico.
+            </p>
+            <p className="mt-2">
+              La sesión y el código se mantienen temporalmente en la memoria de esta página; no se guardan en una cuenta
+              ni en una base de datos. Al recargar o cerrar la página se borran. El código aparecerá en el manual impreso.
+            </p>
+            <p className="mt-2">
+              Para generar el manual, se envían al proveedor del modelo de lenguaje observaciones resumidas de la
+              actividad, avisos de validez y estrategias. No se envían el código ni los toques individuales. El
+              proveedor procesa esa solicitud según sus propias condiciones; no ingreses nombres ni otros datos que
+              identifiquen directamente a la niña o al niño.
+            </p>
+            <p className="mt-2">
+              Si describes una situación del aula o de la casa, o escribes lo que observaste al terminar la actividad,
+              esos textos también se envían al proveedor para personalizar el manual. No escribas nombres ni
+              diagnósticos. Los números se quitan automáticamente.
+            </p>
+            <p className="mt-2">
+              La app no conserva constancia de quién aceptó. Si la escuela necesita guardar un consentimiento, debe
+              documentarlo por separado según sus procedimientos.
+            </p>
+            <button type="button" className="btn-secondary mt-6 w-full" onClick={() => setShowPrivacy(false)}>
+              Cerrar aviso
+            </button>
+          </section>
+        </div>
+      )}
     </main>
   );
 }
+
