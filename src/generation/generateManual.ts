@@ -5,7 +5,7 @@ import { withStrategies } from "./strategyText";
 import { buildPrompt } from "./buildPrompt";
 import { applyRails } from "./applyRails";
 
-const CLIENT_TIMEOUT_MS = 40_000;
+const CLIENT_TIMEOUT_MS = 60_000;
 
 // fixed text for a session too short to read: no model call, no strategies
 export const INSUFFICIENT_SECTIONS: ManualSections = {
