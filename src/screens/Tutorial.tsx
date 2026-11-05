@@ -33,11 +33,17 @@ export default function Tutorial({ animals, onFinish }: Props) {
     try {
       await playClips(current.audioClips);
     } catch {
-      setMessage("No se pudo reproducir el audio. Lee la instrucción en pantalla.");
+      setMessage("No se pudo reproducir el audio. Presiona 'Volver a escuchar'.");
     } finally {
       setPlaying(false);
     }
   }
+  
+  useEffect(() => {
+    if (step > 0 && step <= practice.length) {
+        void listen();
+    }
+  }, [step]);
 
   function beginPractice() {
     setStep(1);
@@ -83,7 +89,6 @@ export default function Tutorial({ animals, onFinish }: Props) {
             ? "Mira la manita. Te muestra dónde tocar."
             : "Escucha la instrucción y toca las tarjetas en orden."}
         </p>
-        {step > 0 && <p className="mt-2 text-xl font-semibold">{current.text}</p>}
       </div>
       <div className="relative min-h-0 flex-1">
         {step === 0 ? (
@@ -117,7 +122,7 @@ export default function Tutorial({ animals, onFinish }: Props) {
           <>
             <p className="text-lg" aria-live="polite">{message || "Sigue la manita para elegir."}</p>
             <button type="button" className="btn-secondary" onClick={listen} disabled={playing}>
-              {playing ? "Reproduciendo..." : "Escuchar instrucción"}
+              {playing ? "Reproduciendo..." : "Volver a escuchar"}
             </button>
             {selectedIds.length === current.expected.length && (
               <button type="button" className="btn-primary" onClick={advance}>
