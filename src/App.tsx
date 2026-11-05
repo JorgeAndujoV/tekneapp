@@ -9,11 +9,12 @@ import { computeProfile } from "./scoring/computeProfile";
 import { stopClip } from "./task/audio";
 import Start from "./screens/Start";
 import Handoff from "./screens/Handoff";
+import Tutorial from "./screens/Tutorial";
 import Task from "./screens/Task";
 import Return from "./screens/Return";
 import Manual from "./screens/Manual";
 
-type Screen = "start" | "handoff" | "task" | "return" | "manual";
+type Screen = "start" | "handoff" | "tutorial" | "task" | "return" | "manual";
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>("start");
@@ -65,7 +66,8 @@ export default function App() {
     setScreen("start");
   }
 
-  if (screen === "handoff") return <Handoff onBegin={() => setScreen("task")} />;
+  if (screen === "handoff") return <Handoff onBegin={() => setScreen("tutorial")} />;
+  if (screen === "tutorial") return <Tutorial animals={animals} onFinish={() => setScreen("task")} />;
   if (screen === "task") return <Task childCode={childCode} intake={intake} animals={animals} onFinish={finishTask} />;
   if (screen === "return") return <Return onContinue={continueToManual} />;
   if (screen === "manual" && profile)
