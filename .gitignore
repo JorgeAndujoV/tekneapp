@@ -1,7 +1,12 @@
 node_modules
 dist
-.env
-.env.local
 *.log
 *.DS_Store
 bench/results
+
+# secrets: every env file except the empty example, plus key and certificate files
+.env
+.env.*
+!.env.example
+*.pem
+*.key
