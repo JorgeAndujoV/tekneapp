@@ -155,7 +155,6 @@ function proportionCorrect(outcomes: TrialOutcome[]): number | null {
   return outcomes.filter((outcome) => outcome === "correct").length / outcomes.length;
 }
 
-// this turns the recorded taps into a profile
 export function computeProfile(session: Session, trials: TrialSpec[]): Profile {
   const scored = session.results.flatMap((result: TrialResult) => {
     const spec = trials.find((trial) => trial.id === result.trialId);

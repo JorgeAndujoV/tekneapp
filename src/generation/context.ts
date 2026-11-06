@@ -16,6 +16,7 @@ const INSTRUCTION_WORDS =
 
 export function suspicious(text: string): boolean {
   if (INSTRUCTION_WORDS.test(text) || namesCondition(text)) return true;
+  // a capitalised word after the first one usually means a proper name, not a style choice
   return text
     .trim()
     .split(/\s+/)

@@ -9,6 +9,7 @@ export const wordsOf = (text: string) =>
 export function copiesNote(text: string, note: string, run: number): boolean {
   const noteWords = wordsOf(note);
   if (noteWords.length < run) return false;
+  // padded with spaces so a run only matches on word boundaries, not inside a longer word
   const haystack = ` ${wordsOf(text).join(" ")} `;
   for (let i = 0; i + run <= noteWords.length; i++) {
     if (haystack.includes(` ${noteWords.slice(i, i + run).join(" ")} `)) return true;
