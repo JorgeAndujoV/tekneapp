@@ -45,7 +45,6 @@ function useWakeLock() {
   }, []);
 }
 
-// this connects the warm-up and the twelve trials to the trial runner, one after another
 export default function Task({ childCode, intake, animals, onFinish }: Props) {
   const [stepIndex, setStepIndex] = useState(0);
   const [running, setRunning] = useState(true);

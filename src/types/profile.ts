@@ -17,9 +17,7 @@
  *      The error codes below describe the response, never a cause.
  */
 
-// ---------------------------------------------------------------------------
 // 1. Trial structure  (mirrors trials.json)
-// ---------------------------------------------------------------------------
 
 /** The escalation dimensions. No spatial prepositions — sequencing instead. */
 export type Dimension =
@@ -37,9 +35,7 @@ export interface TrialSpec {
   expected: string[];
 }
 
-// ---------------------------------------------------------------------------
 // 2. Raw capture  (what the device stores — never discarded)
-// ---------------------------------------------------------------------------
 
 export interface Tap {
   /** null = tap landed outside any card. */
@@ -106,9 +102,7 @@ export interface TrialCodes {
   reversedItem?: boolean;
 }
 
-// ---------------------------------------------------------------------------
 // 3. Measures  — numbers. For matching and for audit. NOT for the prompt.
-// ---------------------------------------------------------------------------
 
 export interface Measures {
   /** Largest action count completed correctly on a majority of its trials. 0–3. */
@@ -134,10 +128,8 @@ export interface Measures {
   confusedAttribute: WrongAttribute | null;
 }
 
-// ---------------------------------------------------------------------------
 // 4. Descriptors — THE ONLY THING THE PROMPT SEES.
-//     Coarse on purpose: 12 trials cannot support anything finer.
-// ---------------------------------------------------------------------------
+// Coarse on purpose: 12 trials cannot support anything finer.
 
 export type Holds = "holds" | "struggles" | "unknown";
 
@@ -152,9 +144,7 @@ export interface Descriptors {
   mixesUp: WrongAttribute | null;
 }
 
-// ---------------------------------------------------------------------------
 // 5. Flags and reliability
-// ---------------------------------------------------------------------------
 
 /** Deterministic. Set by rule, never by the model. */
 export type Flag =
@@ -183,9 +173,7 @@ export type Reliability =
   | "partial" // 6–9: descriptors usable, treat lightly
   | "insufficient"; // < 6: generate no strategies at all
 
-// ---------------------------------------------------------------------------
 // 6. The contract
-// ---------------------------------------------------------------------------
 
 export interface Profile {
   schemaVersion: 3;
@@ -215,9 +203,7 @@ export function promptView(p: Profile): {
   };
 }
 
-// ---------------------------------------------------------------------------
 // 7. Banding — measures to descriptors. Pure, testable, advisor-tunable.
-// ---------------------------------------------------------------------------
 
 export const STRUGGLE_BELOW = 0.5;
 export const EARLY_START_TRIALS = 3;
@@ -259,10 +245,8 @@ export function assessReliability(m: Measures): Reliability {
   return "insufficient";
 }
 
-// ---------------------------------------------------------------------------
 // 8. Fixtures — build the generation half against these on Day 1,
-//    before a single real tap exists.
-// ---------------------------------------------------------------------------
+// before a single real tap exists.
 
 const noCodes: Record<ErrorCode, number> = { E1: 0, E2: 0, E3: 0, E4: 0, E5: 0, E6: 0, E7: 0, E8: 0 };
 

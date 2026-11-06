@@ -175,3 +175,7 @@ Durations are never hard-coded. The response window opens when each file finishe
 ## Printing
 
 **Imprimir** prints the classroom version first and the home version second, each starting on its own page. Each version carries its own validity notices, the full strategies, the "what this task cannot tell you" section, the strategy evidence notes and the closing, so the two can be handed out separately. With the full strategies each version can run past one page, so check the print preview after changing any of this text.
+
+## Development notes
+
+This project was built during a hackathon with Claude Code as a programming assistant. Some commits carry a `Co-Authored-By: Claude` trailer for that reason.
